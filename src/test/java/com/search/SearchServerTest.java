@@ -1,10 +1,10 @@
-package com.search.groupme;
+package com.search;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class GroupmeSearchApplicationTest {
+class SearchServerTest {
 
 	@Test
 	void contextLoads() {
