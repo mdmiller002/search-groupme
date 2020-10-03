@@ -7,15 +7,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 
-public class RestClientManager implements ClientProvider {
+/**
+ * TestClientManager is a client manager for tests
+ * that simply provides a RestHighLevelClient
+ * pointing to localhost:9200
+ */
+public class TestClientManager implements ClientProvider {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RestClientManager.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestClientManager.class);
   private final RestHighLevelClient client;
 
-  public RestClientManager(List<HttpHost> hosts) {
-    client = new RestHighLevelClient(RestClient.builder(hosts.toArray(new HttpHost[0])));
+  public TestClientManager() {
+    client = new RestHighLevelClient(
+        RestClient.builder(new HttpHost("localhost", 9200)));
   }
 
   @Override
@@ -31,5 +36,4 @@ public class RestClientManager implements ClientProvider {
       LOG.error("Failed to close client", e);
     }
   }
-
 }
