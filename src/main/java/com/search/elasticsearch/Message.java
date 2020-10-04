@@ -9,6 +9,10 @@ public class Message {
   private String sender;
   private String text;
 
+  public Message() {
+    super();
+  }
+
   public Message(String sender, String text) {
     this.sender = sender;
     this.text = text;

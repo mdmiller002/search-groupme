@@ -3,6 +3,7 @@ package com.search.elasticsearch;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
@@ -17,16 +18,27 @@ import java.util.Optional;
  * EsIndex is the top level class to Elasticsearch. All Elasticsearch
  * calls should go through this class.
  */
-public class EsIndex {
+public class EsMessageIndex {
 
-  private static final Logger LOG = LoggerFactory.getLogger(EsIndex.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EsMessageIndex.class);
 
   private final ClientProvider clientProvider;
   private final String indexName;
 
-  public EsIndex(ClientProvider clientProvider, String indexName) {
+  private WriteRequest.RefreshPolicy refreshPolicy = WriteRequest.RefreshPolicy.NONE;
+
+  public EsMessageIndex(ClientProvider clientProvider, String indexName) {
     this.clientProvider = clientProvider;
     this.indexName = indexName;
+  }
+
+  /**
+   * Set a custom refresh policy for indexing documents into this index.
+   * This can be useful to set custom refresh policies during testing
+   * to assert that data was indexed.
+   */
+  public void setRefreshPolicy(WriteRequest.RefreshPolicy refreshPolicy) {
+    this.refreshPolicy = refreshPolicy;
   }
 
   /**
@@ -45,7 +57,8 @@ public class EsIndex {
 
   private void executePersist(String messageJson) {
     IndexRequest indexRequest = new IndexRequest(indexName)
-        .source(messageJson, XContentType.JSON);
+        .source(messageJson, XContentType.JSON)
+        .setRefreshPolicy(refreshPolicy);
     try {
       clientProvider.get().index(indexRequest, RequestOptions.DEFAULT);
     } catch (IOException e) {
