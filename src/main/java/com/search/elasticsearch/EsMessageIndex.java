@@ -3,13 +3,24 @@ package com.search.elasticsearch;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,14 +33,14 @@ public class EsMessageIndex {
 
   private static final Logger LOG = LoggerFactory.getLogger(EsMessageIndex.class);
 
-  private final ClientProvider clientProvider;
-  private final String indexName;
+  private final RestHighLevelClient client;
+  private final String index;
 
   private WriteRequest.RefreshPolicy refreshPolicy = WriteRequest.RefreshPolicy.NONE;
 
-  public EsMessageIndex(ClientProvider clientProvider, String indexName) {
-    this.clientProvider = clientProvider;
-    this.indexName = indexName;
+  public EsMessageIndex(ClientProvider clientProvider, String index) {
+    this.client = clientProvider.get();
+    this.index = index;
   }
 
   /**
@@ -56,14 +67,69 @@ public class EsMessageIndex {
   }
 
   private void executePersist(String messageJson) {
-    IndexRequest indexRequest = new IndexRequest(indexName)
+    IndexRequest indexRequest = new IndexRequest(index)
         .source(messageJson, XContentType.JSON)
         .setRefreshPolicy(refreshPolicy);
     try {
-      clientProvider.get().index(indexRequest, RequestOptions.DEFAULT);
+      client.index(indexRequest, RequestOptions.DEFAULT);
     } catch (IOException e) {
       LOG.error("Unable to execute index request " + indexRequest, e);
     }
+  }
+
+  /**
+   * Search for a given message in the message index and return a list of results.
+   * Will attempt to search by both message sender and message text.
+   * Search using generic match queries
+   */
+  public List<Message> searchForMessage(Message message) {
+    if (message == null) {
+      return Collections.emptyList();
+    }
+    List<Pair<String, Object>> searchTerms = new ArrayList<>();
+    if (message.getSender() != null) {
+      searchTerms.add(new Pair<>(Message.SENDER_KEY, message.getSender()));
+    }
+    if (message.getText() != null) {
+      searchTerms.add(new Pair<>(Message.TEXT_KEY, message.getText()));
+    }
+    return executeSearch(searchTerms);
+  }
+
+  private List<Message> executeSearch(List<Pair<String, Object>> searchTerms) {
+    SearchRequest searchRequest = prepareSearchRequest(searchTerms);
+    try {
+      SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+      return processSearchResponse(searchResponse);
+    } catch (IOException e) {
+      LOG.error("Unable to search on index " + index, e);
+    }
+    return Collections.emptyList();
+  }
+
+  private SearchRequest prepareSearchRequest(List<Pair<String, Object>> searchTerms) {
+    SearchRequest searchRequest = new SearchRequest(index);
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
+    for (Pair<String, Object> term : searchTerms) {
+      boolQueryBuilder.must(QueryBuilders.matchQuery(term.getValue0(), term.getValue1()));
+    }
+    searchSourceBuilder.query(boolQueryBuilder);
+    searchRequest.source(searchSourceBuilder);
+    return searchRequest;
+  }
+
+  private List<Message> processSearchResponse(SearchResponse response) {
+    if (response == null || response.getHits().getTotalHits().value <= 0) {
+      return Collections.emptyList();
+    }
+    List<Message> messages = new ArrayList<>();
+    for (SearchHit hit : response.getHits()) {
+      String source = hit.getSourceAsString();
+      Optional<Message> messageOptional = jsonToMessage(source);
+      messageOptional.ifPresent(messages::add);
+    }
+    return messages;
   }
 
   protected Optional<String> messageToJson(Message message) {
@@ -75,6 +141,19 @@ public class EsMessageIndex {
       return Optional.of(mapper.writeValueAsString(message));
     } catch (JsonProcessingException e) {
       LOG.error("Unable to convert message to string. Message: " + message, e);
+    }
+    return Optional.empty();
+  }
+
+  protected Optional<Message> jsonToMessage(String json) {
+    if (json == null || json.length() <= 0) {
+      return Optional.empty();
+    }
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      return Optional.of(mapper.readValue(json, Message.class));
+    } catch (JsonProcessingException e) {
+      LOG.error("Unable to convert JSON string to message. JSON: " + json, e);
     }
     return Optional.empty();
   }

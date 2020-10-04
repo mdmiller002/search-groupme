@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -79,7 +78,6 @@ public class TestIndexHelper {
       searchSourceBuilder.query(boolQueryBuilder);
       searchRequest.source(searchSourceBuilder);
       SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
-      LOG.warn("Search response hits: " + Arrays.toString(searchResponse.getHits().getHits()));
       return searchResponse.getHits().getTotalHits().value > 0;
     } catch (IOException e) {
       LOG.error("Unable to search on index " + index, e);

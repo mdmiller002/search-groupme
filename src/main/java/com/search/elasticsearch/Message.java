@@ -9,6 +9,9 @@ public class Message {
   private String sender;
   private String text;
 
+  public static final String SENDER_KEY = "sender";
+  public static final String TEXT_KEY = "text";
+
   public Message() {
     super();
   }
@@ -37,5 +40,17 @@ public class Message {
   @Override
   public String toString() {
     return "Sender: [" + getSender() + "] Text: [" + getText() + "]";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == this) {
+      return true;
+    }
+    if (!(o instanceof Message)) {
+      return false;
+    }
+    Message m = (Message) o;
+    return sender.equals(m.sender) && text.equals(m.text);
   }
 }
