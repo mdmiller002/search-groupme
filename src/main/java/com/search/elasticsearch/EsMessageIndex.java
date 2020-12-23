@@ -8,6 +8,8 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -18,10 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * EsIndex represents an index and all the operations you can execute on an
@@ -41,6 +40,7 @@ public class EsMessageIndex {
   public EsMessageIndex(ClientProvider clientProvider, String index) {
     this.client = clientProvider.get();
     this.index = index;
+    createIndex();
   }
 
   /**
@@ -50,6 +50,41 @@ public class EsMessageIndex {
    */
   public void setRefreshPolicy(WriteRequest.RefreshPolicy refreshPolicy) {
     this.refreshPolicy = refreshPolicy;
+  }
+
+  private void createIndex() {
+    try {
+      if (!indexExists()) {
+        CreateIndexRequest createIndexRequest = new CreateIndexRequest(index);
+        createIndexRequest.mapping(getMapping());
+        client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to create index " + index, e);
+    }
+  }
+
+  private boolean indexExists() {
+    try {
+      return client.indices().exists(new GetIndexRequest(index), RequestOptions.DEFAULT);
+    } catch (IOException e) {
+      LOG.error("Failed to check if index exists", e);
+      return false;
+    }
+  }
+
+  private Map<String, Object> getMapping() {
+    Map<String, Object> sender = new HashMap<>();
+    sender.put("type", "text");
+    Map<String, Object> text = new HashMap<>();
+    text.put("type", "text");
+
+    Map<String, Object> properties = new HashMap<>();
+    properties.put("sender", sender);
+    properties.put("text", text);
+    Map<String, Object> mapping = new HashMap<>();
+    mapping.put("properties", properties);
+    return mapping;
   }
 
   /**

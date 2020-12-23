@@ -1,13 +1,19 @@
 package com.search.elasticsearch;
 
 import org.elasticsearch.action.support.WriteRequest;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.indices.GetMappingsRequest;
+import org.elasticsearch.client.indices.GetMappingsResponse;
+import org.elasticsearch.cluster.metadata.MappingMetadata;
 import org.javatuples.Pair;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,10 +29,10 @@ class EsMessageIndexTest {
   @BeforeEach
   public void beforeEach() {
     clientProvider = new TestClientManager();
+    TestIndexHelper.deleteIndex(clientProvider.get(), index);
     esMessageIndex = new EsMessageIndex(clientProvider, index);
     // Force index requests to wait until refresh so all tests are deterministic
     esMessageIndex.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
-    TestIndexHelper.deleteIndex(clientProvider.get(), index);
   }
 
   @AfterEach
@@ -69,6 +75,18 @@ class EsMessageIndexTest {
   public void testJsonToMessage_NullJson() {
     Optional<Message> optional = esMessageIndex.jsonToMessage(null);
     assertTrue(optional.isEmpty());
+  }
+
+  @Test
+  public void testIndexCreation_Mapping() throws IOException {
+    GetMappingsRequest request = new GetMappingsRequest().indices(index);
+    GetMappingsResponse response = clientProvider.get().indices().getMapping(request, RequestOptions.DEFAULT);
+    Map<String, MappingMetadata> mappings = response.mappings();
+    MappingMetadata metadata = mappings.get(index);
+    Map<String, Object> mapping = metadata.getSourceAsMap();
+
+    String expected = "{properties={sender={type=text}, text={type=text}}}";
+    assertEquals(mapping.toString(), expected);
   }
 
   @Test
