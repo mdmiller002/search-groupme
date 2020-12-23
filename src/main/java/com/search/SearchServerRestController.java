@@ -17,8 +17,16 @@ public class SearchServerRestController {
 
   @GetMapping(value = "/login")
   @ResponseBody
-  public void login(@RequestParam("access_token") String accessToken) {
+  public void login(
+                    @RequestParam("access_token") String accessToken) {
     System.out.println(accessToken);
+  }
+
+  @GetMapping(value = "/newUser")
+  @ResponseBody
+  public void newUser(@RequestParam("username") String username,
+                      @RequestParam("access_token") String accessToken) {
+
   }
 
 }
