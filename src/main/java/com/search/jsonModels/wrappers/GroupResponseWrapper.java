@@ -1,6 +1,7 @@
-package com.search.groupme.json;
+package com.search.jsonModels.wrappers;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.search.jsonModels.Group;
 
 import java.util.List;
 

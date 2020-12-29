@@ -24,7 +24,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class SearchServerRestControllerTest {
 
   private static final String USERNAME = "user123";
-  private static final String TOKEN = "token123";
+  private static final String TOKEN1 = "token123";
+  private static final String TOKEN2 = "token456";
 
   @Autowired
   MockMvc mvc;
@@ -50,16 +51,30 @@ class SearchServerRestControllerTest {
     // when we hit /newUser with new use details
     mvc.perform(MockMvcRequestBuilders.get("/newUser")
         .param("username", USERNAME)
-        .param("access_token", TOKEN)
+        .param("access_token", TOKEN1)
         .accept(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk());
 
     // Then a new user has been persisted to the database correctly
-    Optional<User> persistedOptional = userRepository.findById((long) 1);
+    Optional<User> persistedOptional = userRepository.findById(USERNAME);
     assertTrue(persistedOptional.isPresent());
     User user = persistedOptional.get();
     assertEquals(user.getUsername(), USERNAME);
-    assertEquals(user.getToken(), TOKEN);
+    assertEquals(user.getToken(), TOKEN1);
+
+    // And when we hit /newUser with the same user but a different token
+    mvc.perform(MockMvcRequestBuilders.get("/newUser")
+        .param("username", USERNAME)
+        .param("access_token", TOKEN2)
+        .accept(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk());
+
+    // Then that user gets updated in the database
+    persistedOptional = userRepository.findById(USERNAME);
+    assertTrue(persistedOptional.isPresent());
+    User user2 = persistedOptional.get();
+    assertEquals(user2.getUsername(), USERNAME);
+    assertEquals(user2.getToken(), TOKEN2);
   }
 
 }

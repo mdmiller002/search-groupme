@@ -1,5 +1,6 @@
 package com.search.elasticsearch;
 
+import com.search.jsonModels.Message;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.indices.GetMappingsRequest;
@@ -47,7 +48,7 @@ class EsMessageIndexTest {
     assertTrue(optional.isPresent());
     String expected =
         "{" +
-        "\"sender\":\"" + testMessage.getSender() + "\"," +
+        "\"name\":\"" + testMessage.getName() + "\"," +
         "\"text\":\"" + testMessage.getText() +
         "\"}";
     assertEquals(expected, optional.get());
@@ -63,7 +64,7 @@ class EsMessageIndexTest {
   public void testJsonToMessage() {
     String json =
       "{" +
-      "\"sender\":\"" + testMessage.getSender() + "\"," +
+      "\"name\":\"" + testMessage.getName() + "\"," +
       "\"text\":\"" + testMessage.getText() +
       "\"}";
     Optional<Message> optional = esMessageIndex.jsonToMessage(json);
@@ -85,7 +86,7 @@ class EsMessageIndexTest {
     MappingMetadata metadata = mappings.get(index);
     Map<String, Object> mapping = metadata.getSourceAsMap();
 
-    String expected = "{properties={sender={type=text}, text={type=text}}}";
+    String expected = "{properties={name={type=text}, text={type=text}}}";
     assertEquals(mapping.toString(), expected);
   }
 
@@ -93,23 +94,26 @@ class EsMessageIndexTest {
   public void testPersistMessage() {
     esMessageIndex.persistMessage(testMessage);
     List<Pair<String, Object>> termsList = new ArrayList<>();
-    termsList.add(new Pair<>(Message.SENDER_KEY, testMessage.getSender()));
+    termsList.add(new Pair<>(Message.NAME_KEY, testMessage.getName()));
     termsList.add(new Pair<>(Message.TEXT_KEY, testMessage.getText()));
     assertTrue(TestIndexHelper.documentExistsInIndex(clientProvider.get(), index, termsList));
   }
 
   @Test
   public void testPersistMessage_NullMessageNoException() {
-    esMessageIndex.persistMessage(null);
-    assertFalse(TestIndexHelper.indexExists(clientProvider.get(), index));
+    try {
+      esMessageIndex.persistMessage(null);
+    } catch (Exception e) {
+      fail("Exception should not be thrown:", e);
+    }
   }
 
   @Test
-  public void testPersistMessage_OnlySender() {
-    Message message = new Message("just_sender", null);
+  public void testPersistMessage_OnlyName() {
+    Message message = new Message("just_name", null);
     esMessageIndex.persistMessage(message);
     List<Pair<String, Object>> termsList = new ArrayList<>();
-    termsList.add(new Pair<>(Message.SENDER_KEY, "just_sender"));
+    termsList.add(new Pair<>(Message.NAME_KEY, "just_name"));
     assertTrue(TestIndexHelper.documentExistsInIndex(clientProvider.get(), index, termsList));
   }
 
@@ -131,8 +135,8 @@ class EsMessageIndexTest {
   }
 
   @Test
-  public void testSearchMessage_OnlySender() {
-    Message searchMsg = new Message(testMessage.getSender(), null);
+  public void testSearchMessage_OnlyName() {
+    Message searchMsg = new Message(testMessage.getName(), null);
     executeSearchForTestMessage(searchMsg);
   }
 
@@ -149,13 +153,13 @@ class EsMessageIndexTest {
   }
 
   @Test
-  public void testSearchMessage_PartialSender() {
+  public void testSearchMessage_PartialName() {
     Message searchMsg = new Message("Matt", null);
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
-  public void testSearchMessage_PartialSenderAndText() {
+  public void testSearchMessage_PartialNameAndText() {
     Message searchMsg = new Message("Miller", "in a");
     executeSearchForTestMessage(searchMsg);
   }

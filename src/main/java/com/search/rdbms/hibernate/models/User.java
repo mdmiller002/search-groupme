@@ -1,7 +1,6 @@
 package com.search.rdbms.hibernate.models;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 /**
@@ -13,8 +12,6 @@ import javax.persistence.Id;
 public class User {
 
   @Id
-  @GeneratedValue
-  private Long id;
   private String username;
   private String token;
 
@@ -23,14 +20,6 @@ public class User {
   public User(String username, String token) {
     this.username = username;
     this.token = token;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
   }
 
   public String getUsername() {

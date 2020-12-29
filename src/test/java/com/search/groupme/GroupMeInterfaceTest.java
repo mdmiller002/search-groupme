@@ -1,6 +1,7 @@
 package com.search.groupme;
 
-import com.search.groupme.json.Group;
+import com.search.jsonModels.Message;
+import com.search.jsonModels.Group;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

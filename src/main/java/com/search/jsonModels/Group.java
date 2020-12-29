@@ -1,4 +1,4 @@
-package com.search.groupme.json;
+package com.search.jsonModels;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

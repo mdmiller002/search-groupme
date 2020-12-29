@@ -2,6 +2,7 @@ package com.search.elasticsearch;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.search.jsonModels.Message;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -74,14 +75,14 @@ public class EsMessageIndex {
   }
 
   private Map<String, Object> getMapping() {
-    Map<String, Object> sender = new HashMap<>();
-    sender.put("type", "text");
+    Map<String, Object> name = new HashMap<>();
+    name.put("type", "text");
     Map<String, Object> text = new HashMap<>();
     text.put("type", "text");
 
     Map<String, Object> properties = new HashMap<>();
-    properties.put("sender", sender);
-    properties.put("text", text);
+    properties.put(Message.NAME_KEY, name);
+    properties.put(Message.TEXT_KEY, text);
     Map<String, Object> mapping = new HashMap<>();
     mapping.put("properties", properties);
     return mapping;
@@ -114,7 +115,7 @@ public class EsMessageIndex {
 
   /**
    * Search for a given message in the message index and return a list of results.
-   * Will attempt to search by both message sender and message text.
+   * Will attempt to search by both message name and message text.
    * Search using generic match queries
    */
   public List<Message> searchForMessage(Message message) {
@@ -122,8 +123,8 @@ public class EsMessageIndex {
       return Collections.emptyList();
     }
     List<Pair<String, Object>> searchTerms = new ArrayList<>();
-    if (message.getSender() != null) {
-      searchTerms.add(new Pair<>(Message.SENDER_KEY, message.getSender()));
+    if (message.getName() != null) {
+      searchTerms.add(new Pair<>(Message.NAME_KEY, message.getName()));
     }
     if (message.getText() != null) {
       searchTerms.add(new Pair<>(Message.TEXT_KEY, message.getText()));

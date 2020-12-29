@@ -31,7 +31,13 @@ public class SearchServerRestController {
   @ResponseBody
   public void newUser(@RequestParam("username") String username,
                       @RequestParam("access_token") String accessToken) {
-    User user = new User(username, accessToken);
+    User user;
+    if (userRepository.existsById(username)) {
+      user = userRepository.getOne(username);
+      user.setToken(accessToken);
+    } else {
+      user = new User(username, accessToken);
+    }
     userRepository.save(user);
   }
 
