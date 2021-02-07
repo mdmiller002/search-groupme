@@ -20,9 +20,21 @@ class GroupMeInterfaceTest {
   }
 
   @Test
+  public void testGetAllGroups() {
+    List<Group> groups = groupMeInterface.getAllGroups();
+    assertTrue(groups.size() > 0);
+  }
+
+  @Test
   public void testGetGroups() {
-    Optional<List<Group>> groups = groupMeInterface.getGroups();
+    Optional<List<Group>> groups = groupMeInterface.getGroupsInPage(1);
     assertTrue(groups.isPresent());
+  }
+
+  @Test
+  public void testGetMessages() {
+    Optional<List<Message>> messages = groupMeInterface.getMessages(17246470);
+    assertTrue(messages.isPresent());
   }
 
 }

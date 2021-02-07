@@ -4,7 +4,7 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.search.rdbms.hibernate.models.User;
+import com.search.rdbms.hibernate.models.UserEntity;
 import com.search.rdbms.hibernate.repositories.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -56,9 +56,9 @@ class SearchServerRestControllerTest {
       .andExpect(status().isOk());
 
     // Then a new user has been persisted to the database correctly
-    Optional<User> persistedOptional = userRepository.findById(USERNAME);
+    Optional<UserEntity> persistedOptional = userRepository.findById(USERNAME);
     assertTrue(persistedOptional.isPresent());
-    User user = persistedOptional.get();
+    UserEntity user = persistedOptional.get();
     assertEquals(user.getUsername(), USERNAME);
     assertEquals(user.getToken(), TOKEN1);
 
@@ -72,7 +72,7 @@ class SearchServerRestControllerTest {
     // Then that user gets updated in the database
     persistedOptional = userRepository.findById(USERNAME);
     assertTrue(persistedOptional.isPresent());
-    User user2 = persistedOptional.get();
+    UserEntity user2 = persistedOptional.get();
     assertEquals(user2.getUsername(), USERNAME);
     assertEquals(user2.getToken(), TOKEN2);
   }

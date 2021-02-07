@@ -1,7 +1,7 @@
 package com.search;
 
 import com.search.elasticsearch.RestClientManager;
-import com.search.rdbms.hibernate.models.User;
+import com.search.rdbms.hibernate.models.UserEntity;
 import com.search.rdbms.hibernate.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -31,12 +31,12 @@ public class SearchServerRestController {
   @ResponseBody
   public void newUser(@RequestParam("username") String username,
                       @RequestParam("access_token") String accessToken) {
-    User user;
+    UserEntity user;
     if (userRepository.existsById(username)) {
       user = userRepository.getOne(username);
       user.setToken(accessToken);
     } else {
-      user = new User(username, accessToken);
+      user = new UserEntity(username, accessToken);
     }
     userRepository.save(user);
   }

@@ -16,14 +16,12 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class GroupMeInterface {
 
   private static final Logger LOG = LoggerFactory.getLogger(GroupMeInterface.class);
+  private static final int PAGE_SIZE = 100;
 
   private final String accessToken;
 
@@ -56,10 +54,28 @@ public class GroupMeInterface {
     return uriTemplate.expand(uriVariables);
   }
 
-  public Optional<List<Group>> getGroups() {
+  public List<Group> getAllGroups() {
+    int i = 1;
+    List<Group> groups = new ArrayList<>();
+    while (true) {
+      Optional<List<Group>> groupsForPage = getGroupsInPage(i);
+      if (groupsForPage.isPresent() && groupsForPage.get().size() > 0) {
+        groups.addAll(groupsForPage.get());
+      } else {
+        break;
+      }
+      i++;
+    }
+    return groups;
+  }
+
+  public Optional<List<Group>> getGroupsInPage(int page) {
     try {
       URIBuilder uriBuilder = new URIBuilder("https://api.groupme.com/v3/groups");
       uriBuilder.addParameter("token", accessToken);
+      uriBuilder.addParameter("omit", "membership");
+      uriBuilder.addParameter("page", Integer.toString(page));
+      uriBuilder.addParameter("per_page", Integer.toString(PAGE_SIZE));
       URL url = new URL(uriBuilder.build().toString());
       HttpURLConnection con = (HttpURLConnection) url.openConnection();
       con.setRequestProperty("Content-Type", "application/json");

@@ -2,17 +2,21 @@ package com.search.rdbms.hibernate.models;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
-public class Group {
+@Table(name = GroupEntity.TABLE_NAME)
+public class GroupEntity {
+
+  public static final String TABLE_NAME = "GROUPS";
 
   @Id
   long id;
   long mostRecentMessageId;
 
-  public Group() { }
+  public GroupEntity() { }
 
-  public Group(long id, long mostRecentMessageId) {
+  public GroupEntity(long id, long mostRecentMessageId) {
     this.id = id;
     this.mostRecentMessageId = mostRecentMessageId;
   }

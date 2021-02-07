@@ -2,6 +2,7 @@ package com.search.rdbms.hibernate.models;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * User entity
@@ -9,15 +10,18 @@ import javax.persistence.Id;
  * stores some necessary state about users
  */
 @Entity
-public class User {
+@Table(name = UserEntity.TABLE_NAME)
+public class UserEntity {
+
+  public static final String TABLE_NAME = "USERS";
 
   @Id
   private String username;
   private String token;
 
-  public User() { }
+  public UserEntity() { }
 
-  public User(String username, String token) {
+  public UserEntity(String username, String token) {
     this.username = username;
     this.token = token;
   }
