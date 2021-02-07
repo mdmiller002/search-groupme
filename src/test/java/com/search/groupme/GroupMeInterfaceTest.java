@@ -26,14 +26,14 @@ class GroupMeInterfaceTest {
   }
 
   @Test
-  public void testGetGroups() {
-    Optional<List<Group>> groups = groupMeInterface.getGroupsInPage(1);
-    assertTrue(groups.isPresent());
+  public void testGetMessages_default() {
+    Optional<List<Message>> messages = groupMeInterface.getMessageBatch(17246470L);
+    assertTrue(messages.isPresent());
   }
 
   @Test
   public void testGetMessages() {
-    Optional<List<Message>> messages = groupMeInterface.getMessages(17246470);
+    Optional<List<Message>> messages = groupMeInterface.getMessageBatch(17246470L, GroupMeInterface.MessageQueryType.SINCE_ID, 161266384695074621L);
     assertTrue(messages.isPresent());
   }
 

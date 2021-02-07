@@ -2,6 +2,8 @@ package com.search.jsonModels;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.Objects;
+
 /**
  * Message is a single message sent in a group that can
  * be serialized/deserialized into JSON for Elasticsearch
@@ -9,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Message {
 
+  private long id;
   private String name;
   private String text;
 
@@ -20,6 +23,14 @@ public class Message {
   public Message(String name, String text) {
     this.name = name;
     this.text = text;
+  }
+
+  public long getId() {
+    return id;
+  }
+
+  public void setId(long id) {
+    this.id = id;
   }
 
   public String getName() {
@@ -40,18 +51,21 @@ public class Message {
 
   @Override
   public String toString() {
-    return "Name: [" + getName() + "] Text: [" + getText() + "]";
+    return getText() + " -" + getName() + " (" + id +")";
   }
+
 
   @Override
   public boolean equals(Object o) {
-    if (o == this) {
-      return true;
-    }
-    if (!(o instanceof Message)) {
-      return false;
-    }
-    Message m = (Message) o;
-    return name.equals(m.name) && text.equals(m.text);
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Message message = (Message) o;
+    return Objects.equals(name, message.name) &&
+        Objects.equals(text, message.text);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, text);
   }
 }
