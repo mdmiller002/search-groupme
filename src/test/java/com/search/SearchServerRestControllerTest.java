@@ -59,8 +59,8 @@ class SearchServerRestControllerTest {
     Optional<UserEntity> persistedOptional = userRepository.findById(USERNAME);
     assertTrue(persistedOptional.isPresent());
     UserEntity user = persistedOptional.get();
-    assertEquals(user.getUsername(), USERNAME);
-    assertEquals(user.getToken(), TOKEN1);
+    assertEquals(USERNAME, user.getUsername());
+    assertEquals(TOKEN1, user.getToken());
 
     // And when we hit /newUser with the same user but a different token
     mvc.perform(MockMvcRequestBuilders.get("/newUser")
@@ -73,8 +73,8 @@ class SearchServerRestControllerTest {
     persistedOptional = userRepository.findById(USERNAME);
     assertTrue(persistedOptional.isPresent());
     UserEntity user2 = persistedOptional.get();
-    assertEquals(user2.getUsername(), USERNAME);
-    assertEquals(user2.getToken(), TOKEN2);
+    assertEquals(USERNAME, user2.getUsername());
+    assertEquals(TOKEN2, user2.getToken());
   }
 
 }

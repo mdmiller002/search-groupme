@@ -2,6 +2,8 @@ package com.search.jsonModels;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.Objects;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Group {
 
@@ -26,6 +28,20 @@ public class Group {
 
   @Override
   public String toString() {
-    return name + " (" + Long.toString(id) + ")";
+    return name + " (" + id + ")";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Group group = (Group) o;
+    return id == group.id &&
+        Objects.equals(name, group.name);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, name);
   }
 }

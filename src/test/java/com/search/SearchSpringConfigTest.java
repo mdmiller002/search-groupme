@@ -29,7 +29,7 @@ class SearchSpringConfigTest {
     RestHighLevelClient client = restClientManager.get();
     MainResponse response = client.info(RequestOptions.DEFAULT);
     assertNotNull(response);
-    assertEquals(response.getClusterName(), "docker-cluster");
+    assertEquals("docker-cluster", response.getClusterName());
     restClientManager.close();
   }
 

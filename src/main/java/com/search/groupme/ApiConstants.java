@@ -13,7 +13,7 @@ class ApiConstants {
   static final String PAGE = "page";
   static final String PER_PAGE = "per_page";
   static final int PAGE_SIZE = 100;
-  static final int MSG_LIMIT = 10;
+  static final int MSG_LIMIT = 100;
   static final String BEFORE_ID = "before_id";
   static final String SINCE_ID = "since_id";
   static final String AFTER_ID = "after_id";

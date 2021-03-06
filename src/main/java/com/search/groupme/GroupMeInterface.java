@@ -10,11 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.util.UriTemplate;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
@@ -25,9 +22,15 @@ public class GroupMeInterface {
   private static final Logger LOG = LoggerFactory.getLogger(GroupMeInterface.class);
 
   private final String accessToken;
+  private final GroupmeRequestMaker requestMaker;
 
   public GroupMeInterface(String accessToken) {
+    this(accessToken, new GroupmeRequestMaker());
+  }
+
+  public GroupMeInterface(String accessToken, GroupmeRequestMaker requestMaker) {
     this.accessToken = accessToken;
+    this.requestMaker = requestMaker;
   }
 
   /**
@@ -58,14 +61,13 @@ public class GroupMeInterface {
       }
 
       URL url = new URL(uriBuilder.build().toString());
-      HttpURLConnection con = (HttpURLConnection) url.openConnection();
-      con.setRequestProperty("Content-Type", "application/json");
-      InputStream responseStream = con.getInputStream();
+      InputStream responseStream = requestMaker.makeRequest(url);
+
       ObjectMapper mapper = new ObjectMapper();
       MessageResponseWrapper messageResponseWrapper = mapper.readValue(responseStream, MessageResponseWrapper.class);
 
       return Optional.of(messageResponseWrapper.getResponse().getMessages());
-    } catch (IOException | URISyntaxException e) {
+    } catch (Exception e) {
       LOG.error("Error getting messages", e);
     }
     return Optional.empty();
@@ -119,18 +121,16 @@ public class GroupMeInterface {
     try {
       URIBuilder uriBuilder = new URIBuilder(URL + "/groups");
       uriBuilder.addParameter(TOKEN, accessToken);
-      uriBuilder.addParameter(OMIT, "membership");
+      uriBuilder.addParameter(OMIT, "memberships");
       uriBuilder.addParameter(PAGE, Integer.toString(page));
       uriBuilder.addParameter(PER_PAGE, Integer.toString(PAGE_SIZE));
       URL url = new URL(uriBuilder.build().toString());
-      HttpURLConnection con = (HttpURLConnection) url.openConnection();
-      con.setRequestProperty("Content-Type", "application/json");
-      InputStream responseStream = con.getInputStream();
+      InputStream responseStream = requestMaker.makeRequest(url);
       ObjectMapper mapper = new ObjectMapper();
 
       GroupResponseWrapper groupResponseWrapper = mapper.readValue(responseStream, GroupResponseWrapper.class);
       return Optional.of(groupResponseWrapper.getResponse());
-    } catch (URISyntaxException | IOException e) {
+    } catch (Exception e) {
       LOG.error("Error getting groups", e);
     }
     return Optional.empty();
