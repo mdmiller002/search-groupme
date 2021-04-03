@@ -1,3 +1,6 @@
+# Don't accidentally check in keys
+src/main/resources/keys.properties
+
 HELP.md
 .gradle
 build/
