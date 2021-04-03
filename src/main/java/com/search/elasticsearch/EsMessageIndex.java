@@ -75,12 +75,15 @@ public class EsMessageIndex {
   }
 
   private Map<String, Object> getMapping() {
+    Map<String, Object> id = new HashMap<>();
+    id.put("type", "long");
     Map<String, Object> name = new HashMap<>();
     name.put("type", "text");
     Map<String, Object> text = new HashMap<>();
     text.put("type", "text");
 
     Map<String, Object> properties = new HashMap<>();
+    properties.put(Message.ID_KEY, id);
     properties.put(Message.NAME_KEY, name);
     properties.put(Message.TEXT_KEY, text);
     Map<String, Object> mapping = new HashMap<>();

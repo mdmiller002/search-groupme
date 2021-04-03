@@ -15,12 +15,14 @@ public class Message {
   private String name;
   private String text;
 
+  public static final String ID_KEY = "id";
   public static final String NAME_KEY = "name";
   public static final String TEXT_KEY = "text";
 
   public Message() { }
 
-  public Message(String name, String text) {
+  public Message(long id, String name, String text) {
+    this.id = id;
     this.name = name;
     this.text = text;
   }
@@ -51,7 +53,7 @@ public class Message {
 
   @Override
   public String toString() {
-    return getText() + " -" + getName() + " (" + id +")";
+    return getName() + ": " + getText() + " (id: " + id +")";
   }
 
 
@@ -60,12 +62,13 @@ public class Message {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Message message = (Message) o;
-    return Objects.equals(name, message.name) &&
+    return Objects.equals(id, message.id) &&
+        Objects.equals(name, message.name) &&
         Objects.equals(text, message.text);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, text);
+    return Objects.hash(id, name, text);
   }
 }

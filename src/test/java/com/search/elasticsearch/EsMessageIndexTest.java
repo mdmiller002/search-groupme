@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class EsMessageIndexTest {
 
   private final String index = TestIndexHelper.TEST_INDEX;
-  private final Message testMessage = new Message("Matt Miller", "Text in a message");
+  private final Message testMessage = new Message(1, "Matt Miller", "Text in a message");
 
   private ClientProvider clientProvider;
   private EsMessageIndex esMessageIndex;
@@ -48,6 +48,7 @@ class EsMessageIndexTest {
     assertTrue(optional.isPresent());
     String expected =
         "{" +
+        "\"id\":" + testMessage.getId() + "," +
         "\"name\":\"" + testMessage.getName() + "\"," +
         "\"text\":\"" + testMessage.getText() +
         "\"}";
@@ -64,6 +65,7 @@ class EsMessageIndexTest {
   public void testJsonToMessage() {
     String json =
       "{" +
+      "\"id\":" + testMessage.getId() + "," +
       "\"name\":\"" + testMessage.getName() + "\"," +
       "\"text\":\"" + testMessage.getText() +
       "\"}";
@@ -86,8 +88,8 @@ class EsMessageIndexTest {
     MappingMetadata metadata = mappings.get(index);
     Map<String, Object> mapping = metadata.getSourceAsMap();
 
-    String expected = "{properties={name={type=text}, text={type=text}}}";
-    assertEquals(mapping.toString(), expected);
+    String expected = "{properties={name={type=text}, id={type=long}, text={type=text}}}";
+    assertEquals(expected, mapping.toString());
   }
 
   @Test
@@ -110,7 +112,7 @@ class EsMessageIndexTest {
 
   @Test
   public void testPersistMessage_OnlyName() {
-    Message message = new Message("just_name", null);
+    Message message = new Message(1, "just_name", null);
     esMessageIndex.persistMessage(message);
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.NAME_KEY, "just_name"));
@@ -119,7 +121,7 @@ class EsMessageIndexTest {
 
   @Test
   public void testPersistMessage_OnlyText() {
-    Message message = new Message(null, "just_text");
+    Message message = new Message(1, null, "just_text");
     esMessageIndex.persistMessage(message);
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.TEXT_KEY, "just_text"));
@@ -130,50 +132,50 @@ class EsMessageIndexTest {
   public void testSearchMessage() {
     esMessageIndex.persistMessage(testMessage);
     List<Message> messages = esMessageIndex.searchForMessage(testMessage);
-    assertEquals(messages.size(), 1);
+    assertEquals(1, messages.size());
     assertTrue(messages.contains(testMessage));
   }
 
   @Test
   public void testSearchMessage_OnlyName() {
-    Message searchMsg = new Message(testMessage.getName(), null);
+    Message searchMsg = new Message(1, testMessage.getName(), null);
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
   public void testSearchMessage_OnlyText() {
-    Message searchMsg = new Message(null, testMessage.getText());
+    Message searchMsg = new Message(1, null, testMessage.getText());
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
   public void testSearchMessage_PartialText() {
-    Message searchMsg = new Message(null, "Text");
+    Message searchMsg = new Message(1, null, "Text");
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
   public void testSearchMessage_PartialName() {
-    Message searchMsg = new Message("Matt", null);
+    Message searchMsg = new Message(1, "Matt", null);
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
   public void testSearchMessage_PartialNameAndText() {
-    Message searchMsg = new Message("Miller", "in a");
+    Message searchMsg = new Message(1, "Miller", "in a");
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
   public void testSearchMessage_PartialDifferentCase() {
-    Message searchMsg = new Message("MATT", "A MESSAGE");
+    Message searchMsg = new Message(1, "MATT", "A MESSAGE");
     executeSearchForTestMessage(searchMsg);
   }
 
   private void executeSearchForTestMessage(Message searchMsg) {
     esMessageIndex.persistMessage(testMessage);
     List<Message> messages = esMessageIndex.searchForMessage(searchMsg);
-    assertEquals(messages.size(), 1);
+    assertEquals(1, messages.size());
     assertTrue(messages.contains(testMessage));
   }
 
