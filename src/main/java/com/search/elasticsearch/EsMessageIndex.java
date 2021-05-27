@@ -77,6 +77,8 @@ public class EsMessageIndex {
   private Map<String, Object> getMapping() {
     Map<String, Object> id = new HashMap<>();
     id.put("type", "long");
+    Map<String, Object> groupId = new HashMap<>();
+    groupId.put("type", "long");
     Map<String, Object> name = new HashMap<>();
     name.put("type", "text");
     Map<String, Object> text = new HashMap<>();
@@ -84,6 +86,7 @@ public class EsMessageIndex {
 
     Map<String, Object> properties = new HashMap<>();
     properties.put(Message.ID_KEY, id);
+    properties.put(Message.GROUP_ID_KEY, groupId);
     properties.put(Message.NAME_KEY, name);
     properties.put(Message.TEXT_KEY, text);
     Map<String, Object> mapping = new HashMap<>();
@@ -125,6 +128,10 @@ public class EsMessageIndex {
     if (message == null) {
       return Collections.emptyList();
     }
+    if (message.getGroupId() == null) {
+      LOG.debug("Searching for message [" + message + "] with null group ID - returning null");
+      return Collections.emptyList();
+    }
     List<Pair<String, Object>> searchTerms = new ArrayList<>();
     if (message.getName() != null) {
       searchTerms.add(new Pair<>(Message.NAME_KEY, message.getName()));
@@ -132,11 +139,11 @@ public class EsMessageIndex {
     if (message.getText() != null) {
       searchTerms.add(new Pair<>(Message.TEXT_KEY, message.getText()));
     }
-    return executeSearch(searchTerms);
+    return executeSearch(message.getGroupId(), searchTerms);
   }
 
-  private List<Message> executeSearch(List<Pair<String, Object>> searchTerms) {
-    SearchRequest searchRequest = prepareSearchRequest(searchTerms);
+  private List<Message> executeSearch(long groupId, List<Pair<String, Object>> searchTerms) {
+    SearchRequest searchRequest = prepareSearchRequest(groupId, searchTerms);
     try {
       SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
       return processSearchResponse(searchResponse);
@@ -146,10 +153,11 @@ public class EsMessageIndex {
     return Collections.emptyList();
   }
 
-  private SearchRequest prepareSearchRequest(List<Pair<String, Object>> searchTerms) {
+  private SearchRequest prepareSearchRequest(long groupId, List<Pair<String, Object>> searchTerms) {
     SearchRequest searchRequest = new SearchRequest(index);
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
+    boolQueryBuilder.must(QueryBuilders.termQuery(Message.GROUP_ID_KEY, groupId));
     for (Pair<String, Object> term : searchTerms) {
       boolQueryBuilder.must(QueryBuilders.matchQuery(term.getValue0(), term.getValue1()));
     }

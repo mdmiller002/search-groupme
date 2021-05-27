@@ -12,17 +12,20 @@ import java.util.Objects;
 public class Message {
 
   private long id;
+  private long groupId;
   private String name;
   private String text;
 
   public static final String ID_KEY = "id";
+  public static final String GROUP_ID_KEY = "groupId";
   public static final String NAME_KEY = "name";
   public static final String TEXT_KEY = "text";
 
   public Message() { }
 
-  public Message(long id, String name, String text) {
+  public Message(long id, long groupId, String name, String text) {
     this.id = id;
+    this.groupId = groupId;
     this.name = name;
     this.text = text;
   }
@@ -33,6 +36,14 @@ public class Message {
 
   public void setId(long id) {
     this.id = id;
+  }
+
+  public Long getGroupId() {
+    return groupId;
+  }
+
+  public void setGroupId(long groupId) {
+    this.groupId = groupId;
   }
 
   public String getName() {
@@ -53,7 +64,7 @@ public class Message {
 
   @Override
   public String toString() {
-    return getName() + ": " + getText() + " (id: " + id +")";
+    return getName() + ": " + getText() + " (id: " + id +", groupId: " + groupId + ")";
   }
 
 
@@ -63,12 +74,13 @@ public class Message {
     if (o == null || getClass() != o.getClass()) return false;
     Message message = (Message) o;
     return Objects.equals(id, message.id) &&
+        Objects.equals(groupId, message.groupId) &&
         Objects.equals(name, message.name) &&
         Objects.equals(text, message.text);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, name, text);
+    return Objects.hash(id, groupId, name, text);
   }
 }
