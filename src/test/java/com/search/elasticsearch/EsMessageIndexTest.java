@@ -21,8 +21,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class EsMessageIndexTest {
 
+  private static final long GROUP_1_ID = 1;
+  private static final long GROUP_2_ID = 2;
+  private static final String MSG_GROUP_1_TXT = "Text in message 1";
+  private static final String MSG_GROUT_2_TXT = "Text in message 2";
+
   private final String index = TestIndexHelper.TEST_INDEX;
-  private final Message testMessage = new Message(1, "Matt Miller", "Text in a message");
+  private final Message tstMsgGroup1 = new Message(1, GROUP_1_ID, "Matt Miller", MSG_GROUP_1_TXT);
+  private final Message tstMsgGroup2 = new Message(1, GROUP_2_ID, "Matt Miller", MSG_GROUT_2_TXT);
 
   private ClientProvider clientProvider;
   private EsMessageIndex esMessageIndex;
@@ -44,13 +50,14 @@ class EsMessageIndexTest {
 
   @Test
   public void testMessageToJson() {
-    Optional<String> optional = esMessageIndex.messageToJson(testMessage);
+    Optional<String> optional = esMessageIndex.messageToJson(tstMsgGroup1);
     assertTrue(optional.isPresent());
     String expected =
         "{" +
-        "\"id\":" + testMessage.getId() + "," +
-        "\"name\":\"" + testMessage.getName() + "\"," +
-        "\"text\":\"" + testMessage.getText() +
+        "\"id\":" + tstMsgGroup1.getId() + "," +
+        "\"groupId\":" + tstMsgGroup1.getGroupId() + "," +
+        "\"name\":\"" + tstMsgGroup1.getName() + "\"," +
+        "\"text\":\"" + tstMsgGroup1.getText() +
         "\"}";
     assertEquals(expected, optional.get());
   }
@@ -65,13 +72,14 @@ class EsMessageIndexTest {
   public void testJsonToMessage() {
     String json =
       "{" +
-      "\"id\":" + testMessage.getId() + "," +
-      "\"name\":\"" + testMessage.getName() + "\"," +
-      "\"text\":\"" + testMessage.getText() +
+      "\"id\":" + tstMsgGroup1.getId() + "," +
+      "\"groupId\":" + tstMsgGroup1.getGroupId() + "," +
+      "\"name\":\"" + tstMsgGroup1.getName() + "\"," +
+      "\"text\":\"" + tstMsgGroup1.getText() +
       "\"}";
     Optional<Message> optional = esMessageIndex.jsonToMessage(json);
     assertTrue(optional.isPresent());
-    assertEquals(testMessage, optional.get());
+    assertEquals(tstMsgGroup1, optional.get());
   }
 
   @Test
@@ -88,16 +96,16 @@ class EsMessageIndexTest {
     MappingMetadata metadata = mappings.get(index);
     Map<String, Object> mapping = metadata.getSourceAsMap();
 
-    String expected = "{properties={name={type=text}, id={type=long}, text={type=text}}}";
+    String expected = "{properties={groupId={type=long}, name={type=text}, id={type=long}, text={type=text}}}";
     assertEquals(expected, mapping.toString());
   }
 
   @Test
   public void testPersistMessage() {
-    esMessageIndex.persistMessage(testMessage);
+    esMessageIndex.persistMessage(tstMsgGroup1);
     List<Pair<String, Object>> termsList = new ArrayList<>();
-    termsList.add(new Pair<>(Message.NAME_KEY, testMessage.getName()));
-    termsList.add(new Pair<>(Message.TEXT_KEY, testMessage.getText()));
+    termsList.add(new Pair<>(Message.NAME_KEY, tstMsgGroup1.getName()));
+    termsList.add(new Pair<>(Message.TEXT_KEY, tstMsgGroup1.getText()));
     assertTrue(TestIndexHelper.documentExistsInIndex(clientProvider.get(), index, termsList));
   }
 
@@ -112,7 +120,7 @@ class EsMessageIndexTest {
 
   @Test
   public void testPersistMessage_OnlyName() {
-    Message message = new Message(1, "just_name", null);
+    Message message = new Message(1, GROUP_1_ID, "just_name", null);
     esMessageIndex.persistMessage(message);
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.NAME_KEY, "just_name"));
@@ -121,7 +129,7 @@ class EsMessageIndexTest {
 
   @Test
   public void testPersistMessage_OnlyText() {
-    Message message = new Message(1, null, "just_text");
+    Message message = new Message(1, GROUP_1_ID, null, "just_text");
     esMessageIndex.persistMessage(message);
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.TEXT_KEY, "just_text"));
@@ -130,53 +138,68 @@ class EsMessageIndexTest {
 
   @Test
   public void testSearchMessage() {
-    esMessageIndex.persistMessage(testMessage);
-    List<Message> messages = esMessageIndex.searchForMessage(testMessage);
+    esMessageIndex.persistMessage(tstMsgGroup1);
+    List<Message> messages = esMessageIndex.searchForMessage(tstMsgGroup1);
     assertEquals(1, messages.size());
-    assertTrue(messages.contains(testMessage));
+    assertTrue(messages.contains(tstMsgGroup1));
+  }
+
+  @Test
+  public void testSearchMessage_DifferentGroups() {
+    esMessageIndex.persistMessage(tstMsgGroup1);
+    esMessageIndex.persistMessage(tstMsgGroup2);
+    List<Message> messages1 = esMessageIndex.searchForMessage(tstMsgGroup1);
+    List<Message> messages2 = esMessageIndex.searchForMessage(tstMsgGroup2);
+    assertEquals(1, messages1.size());
+    assertTrue(messages1.contains(tstMsgGroup1));
+    assertFalse(messages1.contains(tstMsgGroup2));
+    assertEquals(1, messages2.size());
+    assertTrue(messages2.contains(tstMsgGroup2));
+    assertFalse(messages2.contains(tstMsgGroup1));
   }
 
   @Test
   public void testSearchMessage_OnlyName() {
-    Message searchMsg = new Message(1, testMessage.getName(), null);
+    Message searchMsg = new Message(1, GROUP_1_ID, tstMsgGroup1.getName(), null);
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
   public void testSearchMessage_OnlyText() {
-    Message searchMsg = new Message(1, null, testMessage.getText());
+    Message searchMsg = new Message(1, GROUP_1_ID, null, tstMsgGroup1.getText());
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
   public void testSearchMessage_PartialText() {
-    Message searchMsg = new Message(1, null, "Text");
+    Message searchMsg = new Message(1, GROUP_1_ID, null, "Text");
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
   public void testSearchMessage_PartialName() {
-    Message searchMsg = new Message(1, "Matt", null);
+    Message searchMsg = new Message(1, GROUP_1_ID, "Matt", null);
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
   public void testSearchMessage_PartialNameAndText() {
-    Message searchMsg = new Message(1, "Miller", "in a");
+    Message searchMsg = new Message(1, GROUP_1_ID, "Miller", "in a");
     executeSearchForTestMessage(searchMsg);
   }
 
   @Test
   public void testSearchMessage_PartialDifferentCase() {
-    Message searchMsg = new Message(1, "MATT", "A MESSAGE");
+    Message searchMsg = new Message(1, GROUP_1_ID, "MATT", "A MESSAGE");
     executeSearchForTestMessage(searchMsg);
   }
 
   private void executeSearchForTestMessage(Message searchMsg) {
-    esMessageIndex.persistMessage(testMessage);
+    esMessageIndex.persistMessage(tstMsgGroup1);
+    esMessageIndex.persistMessage(tstMsgGroup2);
     List<Message> messages = esMessageIndex.searchForMessage(searchMsg);
     assertEquals(1, messages.size());
-    assertTrue(messages.contains(testMessage));
+    assertTrue(messages.contains(tstMsgGroup1));
   }
 
 }
