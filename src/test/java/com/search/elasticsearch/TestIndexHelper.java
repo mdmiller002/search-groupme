@@ -40,7 +40,7 @@ public class TestIndexHelper {
           LOG.warn("Delete index response was unacknowledged: " + response);
         }
       } else {
-        LOG.warn("Index [" + index + "] does not exist -- not deleting");
+        LOG.info("Index [" + index + "] does not exist -- not deleting");
       }
     } catch (IOException | ElasticsearchStatusException e) {
       LOG.error("Unable to delete index " + index, e);

@@ -56,8 +56,10 @@ public class EsMessageIndex {
   private void createIndex() {
     try {
       if (!indexExists()) {
+        Map<String, Object> mapping = getMapping();
+        LOG.info("Creating new index " + index + " with mapping " + mapping);
         CreateIndexRequest createIndexRequest = new CreateIndexRequest(index);
-        createIndexRequest.mapping(getMapping());
+        createIndexRequest.mapping(mapping);
         client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
       }
     } catch (IOException e) {
@@ -100,6 +102,7 @@ public class EsMessageIndex {
    * @param message message to persist
    */
   public void persistMessage(Message message) {
+    LOG.debug("Persisting message [" + message + "]");
     Optional<String> messageStrOptional = messageToJson(message);
     if (messageStrOptional.isPresent()) {
       executePersist(messageStrOptional.get());
@@ -125,6 +128,7 @@ public class EsMessageIndex {
    * Search using generic match queries
    */
   public List<Message> searchForMessage(Message message) {
+    LOG.debug("Searching for message [" + message + "]");
     if (message == null) {
       return Collections.emptyList();
     }
@@ -139,6 +143,7 @@ public class EsMessageIndex {
     if (message.getText() != null) {
       searchTerms.add(new Pair<>(Message.TEXT_KEY, message.getText()));
     }
+    LOG.debug("Using search terms " + searchTerms);
     return executeSearch(message.getGroupId(), searchTerms);
   }
 

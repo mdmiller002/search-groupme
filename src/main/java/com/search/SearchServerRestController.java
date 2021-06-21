@@ -3,11 +3,15 @@ package com.search;
 import com.search.elasticsearch.RestClientManager;
 import com.search.rdbms.hibernate.models.UserEntity;
 import com.search.rdbms.hibernate.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class SearchServerRestController {
+
+  private static final Logger LOG = LoggerFactory.getLogger(SearchServerRestController.class);
 
   @Autowired
   RestClientManager clientManager;
@@ -31,11 +35,14 @@ public class SearchServerRestController {
   @ResponseBody
   public void newUser(@RequestParam("username") String username,
                       @RequestParam("access_token") String accessToken) {
+    LOG.debug("Received new user request with username " + username);
     UserEntity user;
     if (userRepository.existsById(username)) {
+      LOG.debug("User " + username + " exists, updating access token.");
       user = userRepository.getOne(username);
       user.setToken(accessToken);
     } else {
+      LOG.debug("User " + username + " does not exist, creating new user.");
       user = new UserEntity(username, accessToken);
     }
     userRepository.save(user);

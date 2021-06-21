@@ -51,6 +51,8 @@ public class GroupMeInterface {
    * @return An optional list of messages received from the batch call
    */
   public Optional<List<Message>> getMessageBatch(long groupId, MessageQueryType type, Long messageId) {
+    LOG.info("Getting message batch from group " + groupId + " with query type " + type +
+        " from message ID " + messageId);
     try {
       URIBuilder uriBuilder = new URIBuilder(getUriForMessages(groupId));
       uriBuilder.addParameter(TOKEN, accessToken);
@@ -61,12 +63,19 @@ public class GroupMeInterface {
       }
 
       URL url = new URL(uriBuilder.build().toString());
+      LOG.debug("Making request to: " + url);
       InputStream responseStream = requestMaker.makeRequest(url);
 
       ObjectMapper mapper = new ObjectMapper();
       MessageResponseWrapper messageResponseWrapper = mapper.readValue(responseStream, MessageResponseWrapper.class);
 
-      return Optional.of(messageResponseWrapper.getResponse().getMessages());
+      List<Message> messages = messageResponseWrapper.getResponse().getMessages();
+      LOG.debug("Received " + messages.size() + " messages");
+      if (messages.size() > 0) {
+        LOG.debug("First message: [" + messages.get(0) + "]");
+        LOG.debug("Last message: [" + messages.get(messages.size() - 1) + "]");
+      }
+      return Optional.of(messages);
     } catch (Exception e) {
       LOG.error("Error getting messages", e);
     }
@@ -103,6 +112,7 @@ public class GroupMeInterface {
    * @return A list of all groups. List may be empty.
    */
   public List<Group> getAllGroups() {
+    LOG.info("Getting all groups");
     int i = 1;
     List<Group> groups = new ArrayList<>();
     while (true) {
@@ -125,10 +135,17 @@ public class GroupMeInterface {
       uriBuilder.addParameter(PAGE, Integer.toString(page));
       uriBuilder.addParameter(PER_PAGE, Integer.toString(PAGE_SIZE));
       URL url = new URL(uriBuilder.build().toString());
+      LOG.debug("Making request to: " + url);
       InputStream responseStream = requestMaker.makeRequest(url);
       ObjectMapper mapper = new ObjectMapper();
 
       GroupResponseWrapper groupResponseWrapper = mapper.readValue(responseStream, GroupResponseWrapper.class);
+      List<Group> groups = groupResponseWrapper.getResponse();
+      LOG.debug("Received " + groups.size() + " groups");
+      if (groups.size() > 0) {
+        LOG.debug("First group: [" + groups.get(0) + "]");
+        LOG.debug("Last group: [" + groups.get(groups.size() - 1) + "]");
+      }
       return Optional.of(groupResponseWrapper.getResponse());
     } catch (Exception e) {
       LOG.error("Error getting groups", e);
