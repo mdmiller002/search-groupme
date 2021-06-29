@@ -21,14 +21,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class EsMessageIndexTest {
 
-  private static final long GROUP_1_ID = 1;
-  private static final long GROUP_2_ID = 2;
+  private static final long GROUP_1_ID = 1111111111L;
+  private static final long GROUP_2_ID = 2222222222L;
   private static final String MSG_GROUP_1_TXT = "Text in message 1";
   private static final String MSG_GROUT_2_TXT = "Text in message 2";
 
   private final String index = TestIndexHelper.TEST_INDEX;
-  private final Message tstMsgGroup1 = new Message(1, GROUP_1_ID, "Matt Miller", MSG_GROUP_1_TXT);
-  private final Message tstMsgGroup2 = new Message(1, GROUP_2_ID, "Matt Miller", MSG_GROUT_2_TXT);
+  private final Message tstMsgGroup1 = new Message(1111111111111111111L, GROUP_1_ID, "Matt Miller", MSG_GROUP_1_TXT);
+  private final Message tstMsgGroup2 = new Message(2222222222222222222L, GROUP_2_ID, "Matt Miller", MSG_GROUT_2_TXT);
 
   private ClientProvider clientProvider;
   private EsMessageIndex esMessageIndex;
@@ -103,10 +103,19 @@ class EsMessageIndexTest {
   @Test
   public void testPersistMessage() {
     esMessageIndex.persistMessage(tstMsgGroup1);
+    Optional<String> docIdOptional = tstMsgGroup1.getDocId();
+    assertTrue(docIdOptional.isPresent());
+    String docId = docIdOptional.get();
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.NAME_KEY, tstMsgGroup1.getName()));
     termsList.add(new Pair<>(Message.TEXT_KEY, tstMsgGroup1.getText()));
-    assertTrue(TestIndexHelper.documentExistsInIndex(clientProvider.get(), index, termsList));
+    assertEquals(1, TestIndexHelper.docSearchableByTerms(clientProvider.get(), index, termsList));
+    assertTrue(TestIndexHelper.docExistsInIndexById(clientProvider.get(), index, docId));
+
+    // Persisting same message should upsert instead of adding a second message
+    esMessageIndex.persistMessage(tstMsgGroup1);
+    assertEquals(1, TestIndexHelper.docSearchableByTerms(clientProvider.get(), index, termsList));
+    assertTrue(TestIndexHelper.docExistsInIndexById(clientProvider.get(), index, docId));
   }
 
   @Test
@@ -121,19 +130,27 @@ class EsMessageIndexTest {
   @Test
   public void testPersistMessage_OnlyName() {
     Message message = new Message(1, GROUP_1_ID, "just_name", null);
+    Optional<String> docIdOptional = message.getDocId();
+    assertTrue(docIdOptional.isPresent());
+    String docId = docIdOptional.get();
     esMessageIndex.persistMessage(message);
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.NAME_KEY, "just_name"));
-    assertTrue(TestIndexHelper.documentExistsInIndex(clientProvider.get(), index, termsList));
+    assertEquals(1, TestIndexHelper.docSearchableByTerms(clientProvider.get(), index, termsList));
+    assertTrue(TestIndexHelper.docExistsInIndexById(clientProvider.get(), index, docId));
   }
 
   @Test
   public void testPersistMessage_OnlyText() {
     Message message = new Message(1, GROUP_1_ID, null, "just_text");
+    Optional<String> docIdOptional = message.getDocId();
+    assertTrue(docIdOptional.isPresent());
+    String docId = docIdOptional.get();
     esMessageIndex.persistMessage(message);
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.TEXT_KEY, "just_text"));
-    assertTrue(TestIndexHelper.documentExistsInIndex(clientProvider.get(), index, termsList));
+    assertEquals(1, TestIndexHelper.docSearchableByTerms(clientProvider.get(), index, termsList));
+    assertTrue(TestIndexHelper.docExistsInIndexById(clientProvider.get(), index, docId));
   }
 
   @Test

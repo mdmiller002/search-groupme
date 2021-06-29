@@ -1,8 +1,10 @@
 package com.search.jsonModels;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Message is a single message sent in a group that can
@@ -30,7 +32,7 @@ public class Message {
     this.text = text;
   }
 
-  public long getId() {
+  public Long getId() {
     return id;
   }
 
@@ -67,6 +69,13 @@ public class Message {
     return getName() + ": " + getText() + " (id: " + id +", groupId: " + groupId + ")";
   }
 
+  @JsonIgnore
+  public Optional<String> getDocId() {
+    if (getId() == null || getGroupId() == null) {
+      return Optional.empty();
+    }
+    return Optional.of(getId() + "_" + getGroupId());
+  }
 
   @Override
   public boolean equals(Object o) {

@@ -102,17 +102,29 @@ public class EsMessageIndex {
    * @param message message to persist
    */
   public void persistMessage(Message message) {
+    if (message == null) {
+      LOG.warn("Unable to persist null message");
+      return;
+    }
     LOG.debug("Persisting message [" + message + "]");
+    Optional<String> docIdOptional = message.getDocId();
+    if (docIdOptional.isEmpty()) {
+      LOG.warn("Unable to create doc ID for message");
+      return;
+    }
+
+    String docId = docIdOptional.get();
     Optional<String> messageStrOptional = messageToJson(message);
     if (messageStrOptional.isPresent()) {
-      executePersist(messageStrOptional.get());
+      executePersist(docId, messageStrOptional.get());
     } else {
       LOG.warn("Message unable to be converted to JSON -- not persisting message " + message);
     }
   }
 
-  private void executePersist(String messageJson) {
+  private void executePersist(String docId, String messageJson) {
     IndexRequest indexRequest = new IndexRequest(index)
+        .id(docId)
         .source(messageJson, XContentType.JSON)
         .setRefreshPolicy(refreshPolicy);
     try {
