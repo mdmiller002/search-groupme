@@ -3,7 +3,7 @@ package com.search.elasticsearch;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.search.jsonModels.Message;
-import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.WriteRequest;
@@ -11,7 +11,6 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -42,6 +41,10 @@ public class EsMessageIndex {
     this.client = clientProvider.get();
     this.index = index;
     createIndex();
+  }
+
+  public String getIndex() {
+    return index;
   }
 
   /**
@@ -96,41 +99,17 @@ public class EsMessageIndex {
     return mapping;
   }
 
-  /**
-   * Persist a message into Elasticsearch at the index
-   * specified at indexName
-   * @param message message to persist
-   */
-  public void persistMessage(Message message) {
-    if (message == null) {
-      LOG.warn("Unable to persist null message");
+  public void executeBulkPersist(BulkMessagePersist bulkMessagePersist) {
+    if (bulkMessagePersist == null) {
+      LOG.warn("Unable to execute null bulk request");
       return;
     }
-    LOG.debug("Persisting message [" + message + "]");
-    Optional<String> docIdOptional = message.getDocId();
-    if (docIdOptional.isEmpty()) {
-      LOG.warn("Unable to create doc ID for message");
-      return;
-    }
-
-    String docId = docIdOptional.get();
-    Optional<String> messageStrOptional = messageToJson(message);
-    if (messageStrOptional.isPresent()) {
-      executePersist(docId, messageStrOptional.get());
-    } else {
-      LOG.warn("Message unable to be converted to JSON -- not persisting message " + message);
-    }
-  }
-
-  private void executePersist(String docId, String messageJson) {
-    IndexRequest indexRequest = new IndexRequest(index)
-        .id(docId)
-        .source(messageJson, XContentType.JSON)
-        .setRefreshPolicy(refreshPolicy);
+    BulkRequest bulkRequest = bulkMessagePersist.getBulkRequest();
+    bulkRequest.setRefreshPolicy(refreshPolicy);
     try {
-      client.index(indexRequest, RequestOptions.DEFAULT);
+      client.bulk(bulkRequest, RequestOptions.DEFAULT);
     } catch (IOException e) {
-      LOG.error("Unable to execute index request " + indexRequest, e);
+      LOG.error("Unable to execute bulk request", e);
     }
   }
 
@@ -196,7 +175,7 @@ public class EsMessageIndex {
     return messages;
   }
 
-  protected Optional<String> messageToJson(Message message) {
+  public static Optional<String> messageToJson(Message message) {
     if (message == null) {
       return Optional.empty();
     }
@@ -209,7 +188,7 @@ public class EsMessageIndex {
     return Optional.empty();
   }
 
-  protected Optional<Message> jsonToMessage(String json) {
+  public static Optional<Message> jsonToMessage(String json) {
     if (json == null || json.length() <= 0) {
       return Optional.empty();
     }

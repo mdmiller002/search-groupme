@@ -1,7 +1,7 @@
 package com.search;
 
-import static com.search.groupme.GroupMeInterface.MessageQueryType.*;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.search.elasticsearch.BulkMessagePersist;
 import com.search.elasticsearch.EsMessageIndex;
 import com.search.groupme.GroupMeInterface;
 import com.search.jsonModels.Group;
@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
+
+import static com.search.groupme.GroupMeInterface.MessageQueryType.BEFORE_ID;
 
 /**
  * MessageIndexer is responsible for executing the message indexing algorithm
@@ -27,6 +29,8 @@ public class MessageIndexer {
   private final EsMessageIndex esMessageIndex;
   private final GroupRepository groupRepository;
 
+  private int numMessagesPersisted;
+
   public MessageIndexer(GroupMeInterface groupMeInterface, EsMessageIndex esMessageIndex, GroupRepository groupRepository) {
     this.groupMeInterface = groupMeInterface;
     this.esMessageIndex = esMessageIndex;
@@ -34,6 +38,7 @@ public class MessageIndexer {
   }
 
   protected void updateGroups() {
+    numMessagesPersisted = 0;
     List<Group> groups = groupMeInterface.getAllGroups();
     for (Group group : groups) {
       LOG.debug("Running update algorithm for group " + group);
@@ -98,7 +103,10 @@ public class MessageIndexer {
 
   private long persistMessagesDownward(List<Message> messages, GroupEntity groupEntity) {
     long lastMessageId = messages.get(messages.size() - 1).getId();
-    messages.forEach(esMessageIndex::persistMessage);
+    BulkMessagePersist bulkMessagePersist = new BulkMessagePersist(esMessageIndex.getIndex());
+    messages.forEach(bulkMessagePersist::addMessage);
+    numMessagesPersisted += bulkMessagePersist.getNumMessages();
+    esMessageIndex.executeBulkPersist(bulkMessagePersist);
     groupEntity.setBottomPointer(lastMessageId);
     groupRepository.save(groupEntity);
     return lastMessageId;
@@ -106,5 +114,13 @@ public class MessageIndexer {
 
   private void indexUpward(GroupEntity groupEntity) {
     // TODO implement me
+  }
+
+  /**
+   * Returns the number of messages persisted in the most recent run of the update algorithm.
+   */
+  @VisibleForTesting
+  int getNumMessagesPersisted() {
+    return numMessagesPersisted;
   }
 }

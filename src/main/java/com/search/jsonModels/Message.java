@@ -74,7 +74,7 @@ public class Message {
     if (getId() == null || getGroupId() == null) {
       return Optional.empty();
     }
-    return Optional.of(getId() + "_" + getGroupId());
+    return Optional.of(getGroupId() + "_" + getId());
   }
 
   @Override
