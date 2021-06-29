@@ -2,6 +2,8 @@ package com.search.elasticsearch;
 
 import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
@@ -62,11 +64,12 @@ public class TestIndexHelper {
   /**
    * Determine if a document exists in an index based on a list of
    * search terms. Search terms are passed through a match query
+   * Return the number of search hits retrieved by the query
    */
-  public static boolean documentExistsInIndex(RestHighLevelClient client, String index, List<Pair<String, Object>> terms) {
+  public static long docSearchableByTerms(RestHighLevelClient client, String index, List<Pair<String, Object>> terms) {
     if (terms == null || terms.size() <= 0) {
       LOG.warn("No search terms provided to check if document exists in Index");
-      return false;
+      return 0;
     }
     try {
       SearchRequest searchRequest = new SearchRequest(index);
@@ -78,9 +81,23 @@ public class TestIndexHelper {
       searchSourceBuilder.query(boolQueryBuilder);
       searchRequest.source(searchSourceBuilder);
       SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
-      return searchResponse.getHits().getTotalHits().value > 0;
+      return searchResponse.getHits().getTotalHits().value;
     } catch (IOException e) {
       LOG.error("Unable to search on index " + index, e);
+    }
+    return 0;
+  }
+
+  /**
+   * Determine if a document with the specified doc ID exists in the index
+   */
+  public static boolean docExistsInIndexById(RestHighLevelClient client, String index, String docId) {
+    try {
+      GetRequest getRequest = new GetRequest(index, docId);
+      GetResponse getResponse = client.get(getRequest, RequestOptions.DEFAULT);
+      return getResponse.isExists() && index.equals(getResponse.getIndex()) && docId.equals(getResponse.getId());
+    } catch (IOException e) {
+      LOG.error("Unable to execute get request on index " + index, e);
     }
     return false;
   }
