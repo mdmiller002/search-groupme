@@ -1,7 +1,5 @@
 package com.search;
 
-import static com.search.groupme.GroupMeInterface.MessageQueryType.*;
-
 import com.search.elasticsearch.EsMessageIndex;
 import com.search.groupme.GroupMeInterface;
 import com.search.jsonModels.Group;
@@ -18,8 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.search.groupme.GroupMeInterface.MessageQueryType.BEFORE_ID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class MessageIndexerTest {
@@ -107,39 +107,43 @@ class MessageIndexerTest {
 
   private void executeGroupInitialization() {
     messageIndexer.updateGroups();
-    Optional<GroupEntity> group1 = groupRepository.findById(1L);
-    assertTrue(group1.isPresent());
-    assertEquals(group1.get(), new GroupEntity(GROUP_1, 1L, null, true));
-    Optional<GroupEntity> group2 = groupRepository.findById(2L);
-    assertTrue(group2.isPresent());
-    assertEquals(group2.get(), new GroupEntity(GROUP_2, 1L, null, true));
-    verify(esMessageIndex, times(13)).persistMessage(any());
+
+    assertGroupEntitiesInitialized(GROUP_1);
+    assertGroupEntitiesInitialized(GROUP_2);
+    assertMessagesPersisted(13, 5);
   }
 
   @Test
   public void test_GroupUninitialized_HaveBottomPointer() {
     groupRepository.save(new GroupEntity(GROUP_1, 1L, 3L, false));
+
     messageIndexer.updateGroups();
-    Optional<GroupEntity> group1 = groupRepository.findById(GROUP_1);
-    assertTrue(group1.isPresent());
-    assertEquals(group1.get(), new GroupEntity(GROUP_1, 1L, null, true));
-    Optional<GroupEntity> group2 = groupRepository.findById(GROUP_2);
-    assertTrue(group2.isPresent());
-    assertEquals(group2.get(), new GroupEntity(GROUP_2, 1L, null, true));
-    verify(esMessageIndex, times(10)).persistMessage(any());
+
+    assertGroupEntitiesInitialized(GROUP_1);
+    assertGroupEntitiesInitialized(GROUP_2);
+    assertMessagesPersisted(10, 4);
   }
 
   @Test
   public void test_GroupUninitialized_BottomPointer_LastMessage() {
     groupRepository.save(new GroupEntity(GROUP_1, 1L, 9L, false));
     groupRepository.save(new GroupEntity(GROUP_2, 1L, 4L, false));
+
     messageIndexer.updateGroups();
-    Optional<GroupEntity> group1 = groupRepository.findById(1L);
-    assertTrue(group1.isPresent());
-    assertEquals(group1.get(), new GroupEntity(GROUP_1, 1L, null, true));
-    Optional<GroupEntity> group2 = groupRepository.findById(GROUP_2);
-    assertTrue(group2.isPresent());
-    assertEquals(group2.get(), new GroupEntity(GROUP_2, 1L, null, true));
-    verify(esMessageIndex, times(0)).persistMessage(any());
+
+    assertGroupEntitiesInitialized(GROUP_1);
+    assertGroupEntitiesInitialized(GROUP_2);
+    verify(esMessageIndex, times(0)).executeBulkPersist(any());
+  }
+
+  private void assertGroupEntitiesInitialized(long groupId) {
+    Optional<GroupEntity> group = groupRepository.findById(groupId);
+    assertTrue(group.isPresent());
+    assertEquals(new GroupEntity(groupId, 1L, null, true), group.get());
+  }
+
+  private void assertMessagesPersisted(int expectedMessagesPersisted, int expectedBulkPersists) {
+    assertEquals(expectedMessagesPersisted, messageIndexer.getNumMessagesPersisted());
+    verify(esMessageIndex, times(expectedBulkPersists)).executeBulkPersist(any());
   }
 }
