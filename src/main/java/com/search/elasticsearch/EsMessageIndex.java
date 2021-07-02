@@ -81,9 +81,9 @@ public class EsMessageIndex {
 
   private Map<String, Object> getMapping() {
     Map<String, Object> id = new HashMap<>();
-    id.put("type", "long");
+    id.put("type", "keyword");
     Map<String, Object> groupId = new HashMap<>();
-    groupId.put("type", "long");
+    groupId.put("type", "keyword");
     Map<String, Object> name = new HashMap<>();
     name.put("type", "text");
     Map<String, Object> text = new HashMap<>();
@@ -138,7 +138,7 @@ public class EsMessageIndex {
     return executeSearch(message.getGroupId(), searchTerms);
   }
 
-  private List<Message> executeSearch(long groupId, List<Pair<String, Object>> searchTerms) {
+  private List<Message> executeSearch(String groupId, List<Pair<String, Object>> searchTerms) {
     SearchRequest searchRequest = prepareSearchRequest(groupId, searchTerms);
     try {
       SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
@@ -149,7 +149,7 @@ public class EsMessageIndex {
     return Collections.emptyList();
   }
 
-  private SearchRequest prepareSearchRequest(long groupId, List<Pair<String, Object>> searchTerms) {
+  private SearchRequest prepareSearchRequest(String groupId, List<Pair<String, Object>> searchTerms) {
     SearchRequest searchRequest = new SearchRequest(index);
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();

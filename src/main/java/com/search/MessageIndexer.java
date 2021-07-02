@@ -51,7 +51,7 @@ public class MessageIndexer {
     }
   }
 
-  private void runUpdateAlgorithm(long groupId) {
+  private void runUpdateAlgorithm(String groupId) {
     Optional<GroupEntity> groupEntityOptional = groupRepository.findById(groupId);
     if (groupEntityOptional.isEmpty()) {
       LOG.error("Group ID " + groupId + " not found in RDBMS");
@@ -67,7 +67,7 @@ public class MessageIndexer {
   }
 
   private void initialGroupIndex(GroupEntity groupEntity) {
-    long groupId = groupEntity.getId();
+    String groupId = groupEntity.getId();
     Optional<List<Message>> messagesOptional;
     boolean initialIndex = false;
 
@@ -89,7 +89,7 @@ public class MessageIndexer {
     }
 
     while (!messages.isEmpty()) {
-      long lastMessage = persistMessagesDownward(messages, groupEntity);
+      String lastMessage = persistMessagesDownward(messages, groupEntity);
       messagesOptional = groupMeInterface.getMessageBatch(groupId, BEFORE_ID, lastMessage);
       if (messagesOptional.isEmpty()) {
         break;
@@ -101,8 +101,8 @@ public class MessageIndexer {
     groupRepository.save(groupEntity);
   }
 
-  private long persistMessagesDownward(List<Message> messages, GroupEntity groupEntity) {
-    long lastMessageId = messages.get(messages.size() - 1).getId();
+  private String persistMessagesDownward(List<Message> messages, GroupEntity groupEntity) {
+    String lastMessageId = messages.get(messages.size() - 1).getId();
     BulkMessagePersist bulkMessagePersist = new BulkMessagePersist(esMessageIndex.getIndex());
     messages.forEach(bulkMessagePersist::addMessage);
     numMessagesPersisted += bulkMessagePersist.getNumMessages();

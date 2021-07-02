@@ -39,7 +39,7 @@ public class GroupMeInterface {
    * @param groupId The group to get the messages from.
    * @return An optional list of messages received from the batch call.
    */
-  public Optional<List<Message>> getMessageBatch(long groupId) {
+  public Optional<List<Message>> getMessageBatch(String groupId) {
     return getMessageBatch(groupId, null, null);
   }
 
@@ -50,7 +50,7 @@ public class GroupMeInterface {
    * @param messageId The message ID to get messages before/after/since for
    * @return An optional list of messages received from the batch call
    */
-  public Optional<List<Message>> getMessageBatch(long groupId, MessageQueryType type, Long messageId) {
+  public Optional<List<Message>> getMessageBatch(String groupId, MessageQueryType type, String messageId) {
     LOG.info("Getting message batch from group " + groupId + " with query type " + type +
         " from message ID " + messageId);
     try {
@@ -82,14 +82,14 @@ public class GroupMeInterface {
     return Optional.empty();
   }
 
-  private URI getUriForMessages(long groupId) {
+  private URI getUriForMessages(String groupId) {
     UriTemplate uriTemplate = new UriTemplate(URL + "/groups/{group_id}/messages");
     Map<String, String> uriVariables = new HashMap<>();
-    uriVariables.put(GROUP_ID, String.valueOf(groupId));
+    uriVariables.put(GROUP_ID, groupId);
     return uriTemplate.expand(uriVariables);
   }
 
-  private void addQueryParam(MessageQueryType type, Long messageId, URIBuilder uriBuilder) {
+  private void addQueryParam(MessageQueryType type, String messageId, URIBuilder uriBuilder) {
     String param;
     switch (type) {
       case BEFORE_ID:
@@ -104,7 +104,7 @@ public class GroupMeInterface {
       default:
         throw new IllegalArgumentException("MessageType not recognized: " + type.name() + ", " + type);
     }
-    uriBuilder.addParameter(param, Long.toString(messageId));
+    uriBuilder.addParameter(param, messageId);
   }
 
   /**

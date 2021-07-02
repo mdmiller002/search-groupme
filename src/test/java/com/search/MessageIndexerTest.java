@@ -24,8 +24,8 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 class MessageIndexerTest {
 
-  private static final long GROUP_1 = 1;
-  private static final long GROUP_2 = 2;
+  private static final String GROUP_1 = "1";
+  private static final String GROUP_2 = "2";
 
   private GroupMeInterface groupMeInterface;
   private EsMessageIndex esMessageIndex;
@@ -54,38 +54,38 @@ class MessageIndexerTest {
     when(groupMeInterface.getAllGroups()).thenReturn(groups);
 
     List<Message> defaultMessages1 = new ArrayList<>();
-    defaultMessages1.add(new Message(1, GROUP_1, "p1", "msg1"));
-    defaultMessages1.add(new Message(2, GROUP_1, "p2", "msg2"));
-    defaultMessages1.add(new Message(3, GROUP_1, "p3", "msg3"));
+    defaultMessages1.add(new Message("1", GROUP_1, "p1", "msg1"));
+    defaultMessages1.add(new Message("2", GROUP_1, "p2", "msg2"));
+    defaultMessages1.add(new Message("3", GROUP_1, "p3", "msg3"));
     when(groupMeInterface.getMessageBatch(GROUP_1)).thenReturn(Optional.of(defaultMessages1));
 
     List<Message> before3Group1 = new ArrayList<>();
-    before3Group1.add(new Message(4, GROUP_1, "p1", "msg4"));
-    before3Group1.add(new Message(5, GROUP_1, "p2", "msg5"));
-    before3Group1.add(new Message(6, GROUP_1, "p3", "msg6"));
-    when(groupMeInterface.getMessageBatch(GROUP_1, BEFORE_ID, 3L)).thenReturn(Optional.of(before3Group1));
+    before3Group1.add(new Message("4", GROUP_1, "p1", "msg4"));
+    before3Group1.add(new Message("5", GROUP_1, "p2", "msg5"));
+    before3Group1.add(new Message("6", GROUP_1, "p3", "msg6"));
+    when(groupMeInterface.getMessageBatch(GROUP_1, BEFORE_ID, "3")).thenReturn(Optional.of(before3Group1));
 
     List<Message> before6Group1 = new ArrayList<>();
-    before6Group1.add(new Message(7, GROUP_1, "p1", "msg7"));
-    before6Group1.add(new Message(8, GROUP_1, "p2", "msg8"));
-    before6Group1.add(new Message(9, GROUP_1, "p3", "msg9"));
-    when(groupMeInterface.getMessageBatch(GROUP_1, BEFORE_ID, 6L)).thenReturn(Optional.of(before6Group1));
+    before6Group1.add(new Message("7", GROUP_1, "p1", "msg7"));
+    before6Group1.add(new Message("8", GROUP_1, "p2", "msg8"));
+    before6Group1.add(new Message("9", GROUP_1, "p3", "msg9"));
+    when(groupMeInterface.getMessageBatch(GROUP_1, BEFORE_ID, "6")).thenReturn(Optional.of(before6Group1));
 
     List<Message> before9Group1 = new ArrayList<>();
-    when(groupMeInterface.getMessageBatch(GROUP_1, BEFORE_ID, 9L)).thenReturn(Optional.of(before9Group1));
+    when(groupMeInterface.getMessageBatch(GROUP_1, BEFORE_ID, "9")).thenReturn(Optional.of(before9Group1));
 
     List<Message> defaultMessages2 = new ArrayList<>();
-    defaultMessages2.add(new Message(1, GROUP_2, "p1", "msg1"));
-    defaultMessages2.add(new Message(2, GROUP_2, "p2", "msg2"));
-    defaultMessages2.add(new Message(3, GROUP_2, "p3", "msg3"));
+    defaultMessages2.add(new Message("1", GROUP_2, "p1", "msg1"));
+    defaultMessages2.add(new Message("2", GROUP_2, "p2", "msg2"));
+    defaultMessages2.add(new Message("3", GROUP_2, "p3", "msg3"));
     when(groupMeInterface.getMessageBatch(GROUP_2)).thenReturn(Optional.of(defaultMessages2));
 
     List<Message> before3Group2 = new ArrayList<>();
-    before3Group2.add(new Message(4, GROUP_2, "p1", "msg4"));
-    when(groupMeInterface.getMessageBatch(GROUP_2, BEFORE_ID, 3L)).thenReturn(Optional.of(before3Group2));
+    before3Group2.add(new Message("4", GROUP_2, "p1", "msg4"));
+    when(groupMeInterface.getMessageBatch(GROUP_2, BEFORE_ID, "3")).thenReturn(Optional.of(before3Group2));
 
     List<Message> before4Group2 = new ArrayList<>();
-    when(groupMeInterface.getMessageBatch(GROUP_2, BEFORE_ID, 4L)).thenReturn(Optional.of(before4Group2));
+    when(groupMeInterface.getMessageBatch(GROUP_2, BEFORE_ID, "4")).thenReturn(Optional.of(before4Group2));
   }
 
   @Test
@@ -101,7 +101,7 @@ class MessageIndexerTest {
 
   @Test
   public void test_GroupUnInitialized_OnlyTopPointer() {
-    groupRepository.save(new GroupEntity(GROUP_1, 1L, null, false));
+    groupRepository.save(new GroupEntity(GROUP_1, "1", null, false));
     executeGroupInitialization();
   }
 
@@ -115,7 +115,7 @@ class MessageIndexerTest {
 
   @Test
   public void test_GroupUninitialized_HaveBottomPointer() {
-    groupRepository.save(new GroupEntity(GROUP_1, 1L, 3L, false));
+    groupRepository.save(new GroupEntity(GROUP_1, "1", "3", false));
 
     messageIndexer.updateGroups();
 
@@ -126,8 +126,8 @@ class MessageIndexerTest {
 
   @Test
   public void test_GroupUninitialized_BottomPointer_LastMessage() {
-    groupRepository.save(new GroupEntity(GROUP_1, 1L, 9L, false));
-    groupRepository.save(new GroupEntity(GROUP_2, 1L, 4L, false));
+    groupRepository.save(new GroupEntity(GROUP_1, "1", "9", false));
+    groupRepository.save(new GroupEntity(GROUP_2, "1", "4", false));
 
     messageIndexer.updateGroups();
 
@@ -136,10 +136,10 @@ class MessageIndexerTest {
     verify(esMessageIndex, times(0)).executeBulkPersist(any());
   }
 
-  private void assertGroupEntitiesInitialized(long groupId) {
+  private void assertGroupEntitiesInitialized(String groupId) {
     Optional<GroupEntity> group = groupRepository.findById(groupId);
     assertTrue(group.isPresent());
-    assertEquals(new GroupEntity(groupId, 1L, null, true), group.get());
+    assertEquals(new GroupEntity(groupId, "1", null, true), group.get());
   }
 
   private void assertMessagesPersisted(int expectedMessagesPersisted, int expectedBulkPersists) {

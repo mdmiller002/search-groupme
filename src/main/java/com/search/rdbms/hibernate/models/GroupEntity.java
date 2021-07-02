@@ -12,42 +12,42 @@ public class GroupEntity {
   public static final String TABLE_NAME = "GROUPS";
 
   @Id
-  Long id;
-  Long topPointer;
-  Long bottomPointer;
+  String id;
+  String topPointer;
+  String bottomPointer;
 
   boolean isInitialized;
 
   public GroupEntity() { }
 
-  public GroupEntity(Long id, Long topPointer, Long bottomPointer, boolean isInitialized) {
+  public GroupEntity(String id, String topPointer, String bottomPointer, boolean isInitialized) {
     this.id = id;
     this.topPointer = topPointer;
     this.bottomPointer = bottomPointer;
     this.isInitialized = isInitialized;
   }
 
-  public Long getId() {
+  public String getId() {
     return id;
   }
 
-  public void setId(Long id) {
+  public void setId(String id) {
     this.id = id;
   }
 
-  public Long getTopPointer() {
+  public String getTopPointer() {
     return topPointer;
   }
 
-  public void setTopPointer(Long topPointer) {
+  public void setTopPointer(String topPointer) {
     this.topPointer = topPointer;
   }
 
-  public Long getBottomPointer() {
+  public String getBottomPointer() {
     return bottomPointer;
   }
 
-  public void setBottomPointer(Long bottomPointer) {
+  public void setBottomPointer(String bottomPointer) {
     this.bottomPointer = bottomPointer;
   }
 

@@ -7,12 +7,12 @@ import java.util.Objects;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Group {
 
-  private long id;
+  private String id;
   private String name;
 
-  public Group() { };
+  public Group() { }
 
-  public Group(long id, String name) {
+  public Group(String id, String name) {
     this.id = id;
     this.name = name;
   }
@@ -25,11 +25,11 @@ public class Group {
     this.name = name;
   }
 
-  public void setId(long id) {
+  public void setId(String id) {
     this.id = id;
   }
 
-  public long getId() {
+  public String getId() {
     return id;
   }
 
@@ -43,7 +43,7 @@ public class Group {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Group group = (Group) o;
-    return id == group.id &&
+    return id.equals(group.id) &&
         Objects.equals(name, group.name);
   }
 
