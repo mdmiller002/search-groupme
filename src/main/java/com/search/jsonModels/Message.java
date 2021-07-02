@@ -2,6 +2,7 @@ package com.search.jsonModels;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -13,38 +14,39 @@ import java.util.Optional;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Message {
 
-  private long id;
-  private long groupId;
+  private String id;
+  @JsonProperty(GROUP_ID_KEY)
+  private String groupId;
   private String name;
   private String text;
 
   public static final String ID_KEY = "id";
-  public static final String GROUP_ID_KEY = "groupId";
+  public static final String GROUP_ID_KEY = "group_id";
   public static final String NAME_KEY = "name";
   public static final String TEXT_KEY = "text";
 
   public Message() { }
 
-  public Message(long id, long groupId, String name, String text) {
+  public Message(String id, String groupId, String name, String text) {
     this.id = id;
     this.groupId = groupId;
     this.name = name;
     this.text = text;
   }
 
-  public Long getId() {
+  public String getId() {
     return id;
   }
 
-  public void setId(long id) {
+  public void setId(String id) {
     this.id = id;
   }
 
-  public Long getGroupId() {
+  public String getGroupId() {
     return groupId;
   }
 
-  public void setGroupId(long groupId) {
+  public void setGroupId(String groupId) {
     this.groupId = groupId;
   }
 

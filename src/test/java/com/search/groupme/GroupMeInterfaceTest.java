@@ -26,7 +26,7 @@ class GroupMeInterfaceTest {
 
   private static final String KEY = "key";
   private static final String GM_API = "https://api.groupme.com/v3/%s?token=" + KEY + "%s";
-  private static final long TEST_GROUP = 1;
+  private static final String TEST_GROUP = "1";
 
   private static final String meta = "\"meta\":{\"code\":200}}";
 
@@ -40,29 +40,29 @@ class GroupMeInterfaceTest {
   // Messages
   private static final String MSG_DEFAULT_URL = String.format(GM_API, "groups/" + TEST_GROUP + "/messages", "&limit=100");
   private static final String MSG_DEFAULT_RESP = "{\"response\":{\"messages\":[" +
-                                             "{\"id\": \"1\", \"name\": \"p1\", \"text\": \"msg1\"}," +
-                                             "{\"id\": \"2\", \"name\": \"p2\", \"text\": \"msg2\"}," +
-                                             "{\"id\": \"3\", \"name\": \"p3\", \"text\": \"msg3\"}," +
-                                             "{\"id\": \"4\", \"name\": \"p4\", \"text\": \"msg4\"}," +
-                                             "{\"id\": \"5\", \"name\": \"p5\", \"text\": \"msg5\"}]}," + meta;
+                                             "{\"id\": \"1\", \"group_id\": \"" + TEST_GROUP + "\", \"name\": \"p1\", \"text\": \"msg1\"}," +
+                                             "{\"id\": \"2\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p2\", \"text\": \"msg2\"}," +
+                                             "{\"id\": \"3\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p3\", \"text\": \"msg3\"}," +
+                                             "{\"id\": \"4\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p4\", \"text\": \"msg4\"}," +
+                                             "{\"id\": \"5\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p5\", \"text\": \"msg5\"}]}," + meta;
 
   private static final String MSG_BEFORE_URL = String.format(GM_API, "groups/" + TEST_GROUP + "/messages",
       "&limit=100&before_id=3");
   private static final String MSG_BEFORE_RESP = "{\"response\":{\"messages\":[" +
-                                            "{\"id\": \"4\", \"name\": \"p4\", \"text\": \"msg4\"}," +
-                                            "{\"id\": \"5\", \"name\": \"p5\", \"text\": \"msg5\"}]}," + meta;
+                                            "{\"id\": \"4\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p4\", \"text\": \"msg4\"}," +
+                                            "{\"id\": \"5\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p5\", \"text\": \"msg5\"}]}," + meta;
 
   private static final String MSG_AFTER_URL = String.format(GM_API, "groups/" + TEST_GROUP + "/messages",
       "&limit=100&after_id=3");
   private static final String MSG_AFTER_RESP = "{\"response\":{\"messages\":[" +
-      "{\"id\": \"2\", \"name\": \"p2\", \"text\": \"msg2\"}," +
-      "{\"id\": \"1\", \"name\": \"p1\", \"text\": \"msg1\"}]}," + meta;
+      "{\"id\": \"2\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p2\", \"text\": \"msg2\"}," +
+      "{\"id\": \"1\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p1\", \"text\": \"msg1\"}]}," + meta;
 
   private static final String MSG_SINCE_URL = String.format(GM_API, "groups/" + TEST_GROUP + "/messages",
       "&limit=100&since_id=3");
   private static final String MSG_SINCE_RESP = "{\"response\":{\"messages\":[" +
-      "{\"id\": \"1\", \"name\": \"p1\", \"text\": \"msg1\"}," +
-      "{\"id\": \"2\", \"name\": \"p2\", \"text\": \"msg2\"}]}," + meta;
+      "{\"id\": \"1\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p1\", \"text\": \"msg1\"}," +
+      "{\"id\": \"2\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p2\", \"text\": \"msg2\"}]}," + meta;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -136,7 +136,7 @@ class GroupMeInterfaceTest {
 
   private void doTestMessageQuery(GroupMeInterface.MessageQueryType type, String expectedRespStr)
       throws JsonProcessingException {
-    Optional<List<Message>> messages = groupMeInterface.getMessageBatch(TEST_GROUP, type, 3L);
+    Optional<List<Message>> messages = groupMeInterface.getMessageBatch(TEST_GROUP, type, "3");
     assertTrue(messages.isPresent());
     List<Message> expected = objectMapper.readValue(expectedRespStr, MessageResponseWrapper.class)
         .getResponse().getMessages();
