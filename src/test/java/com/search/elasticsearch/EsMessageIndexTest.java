@@ -132,9 +132,9 @@ class EsMessageIndexTest {
     assertTrue(docIdOptional1.isPresent());
     String docId1 = docIdOptional1.get();
 
-    Optional<String> docIdOptional2 = tstMsg1Group1.getDocId();
+    Optional<String> docIdOptional2 = tstMsg2Group1.getDocId();
     assertTrue(docIdOptional2.isPresent());
-    String docId2 = docIdOptional1.get();
+    String docId2 = docIdOptional2.get();
 
     List<Pair<String, Object>> termsList1 = new ArrayList<>();
     termsList1.add(new Pair<>(Message.NAME_KEY, tstMsg1Group1.getName()));
