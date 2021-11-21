@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class GroupMeInterfaceTest {
+class GroupMeMessageDataSourceTest {
 
   private static final String KEY = "key";
   private static final String GM_API = "https://api.groupme.com/v3/%s?token=" + KEY + "%s";
@@ -67,12 +67,12 @@ class GroupMeInterfaceTest {
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private static GroupmeRequestMaker requestMaker;
-  private GroupMeInterface groupMeInterface;
+  private GroupMeMessageDataSource messageDataSource;
 
   @BeforeEach
   public void beforeEach() throws IOException {
     setupMockRequestMaker();
-    groupMeInterface = new GroupMeInterface(KEY, requestMaker);
+    messageDataSource = new GroupMeMessageDataSource(KEY, requestMaker);
   }
 
   private void setupMockRequestMaker() throws IOException {
@@ -96,7 +96,7 @@ class GroupMeInterfaceTest {
 
   @Test
   public void testGetAllGroups() throws IOException {
-    List<Group> groups = groupMeInterface.getAllGroups();
+    List<Group> groups = messageDataSource.getAllGroups();
     List<Group> expected = objectMapper.readValue(GROUP_PG1_RESP, GroupResponseWrapper.class)
         .getResponse();
     assertTrue(groups.size() > 0);
@@ -106,13 +106,13 @@ class GroupMeInterfaceTest {
   @Test
   public void testGetAllGroups_nullResult() throws IOException {
     when(requestMaker.makeRequest(new URL(GROUPS_PG1_URL))).thenReturn(null);
-    List<Group> groups = groupMeInterface.getAllGroups();
+    List<Group> groups = messageDataSource.getAllGroups();
     assertEquals(0, groups.size());
   }
 
   @Test
   public void testGetMessages_default() throws JsonProcessingException {
-    Optional<List<Message>> messages = groupMeInterface.getMessageBatch(TEST_GROUP);
+    Optional<List<Message>> messages = messageDataSource.getMessageBatch(TEST_GROUP);
     assertTrue(messages.isPresent());
     List<Message> expected = objectMapper.readValue(MSG_DEFAULT_RESP, MessageResponseWrapper.class)
         .getResponse().getMessages();
@@ -121,22 +121,22 @@ class GroupMeInterfaceTest {
 
   @Test
   public void testGetMessage_beforeId() throws JsonProcessingException {
-    doTestMessageQuery(GroupMeInterface.MessageQueryType.BEFORE_ID, MSG_BEFORE_RESP);
+    doTestMessageQuery(MessageQueryType.BEFORE_ID, MSG_BEFORE_RESP);
   }
 
   @Test
   public void testGetMessage_afterId() throws JsonProcessingException {
-    doTestMessageQuery(GroupMeInterface.MessageQueryType.AFTER_ID, MSG_AFTER_RESP);
+    doTestMessageQuery(MessageQueryType.AFTER_ID, MSG_AFTER_RESP);
   }
 
   @Test
   public void testGetMessage_sinceId() throws JsonProcessingException {
-    doTestMessageQuery(GroupMeInterface.MessageQueryType.SINCE_ID, MSG_SINCE_RESP);
+    doTestMessageQuery(MessageQueryType.SINCE_ID, MSG_SINCE_RESP);
   }
 
-  private void doTestMessageQuery(GroupMeInterface.MessageQueryType type, String expectedRespStr)
+  private void doTestMessageQuery(MessageQueryType type, String expectedRespStr)
       throws JsonProcessingException {
-    Optional<List<Message>> messages = groupMeInterface.getMessageBatch(TEST_GROUP, type, "3");
+    Optional<List<Message>> messages = messageDataSource.getMessageBatch(TEST_GROUP, type, "3");
     assertTrue(messages.isPresent());
     List<Message> expected = objectMapper.readValue(expectedRespStr, MessageResponseWrapper.class)
         .getResponse().getMessages();
@@ -146,7 +146,7 @@ class GroupMeInterfaceTest {
   @Test
   public void testGetMessages_nullResult() throws IOException {
     when(requestMaker.makeRequest(new URL(MSG_DEFAULT_URL))).thenReturn(null);
-    Optional<List<Message>> messages = groupMeInterface.getMessageBatch(TEST_GROUP);
+    Optional<List<Message>> messages = messageDataSource.getMessageBatch(TEST_GROUP);
     assertTrue(messages.isEmpty());
   }
 

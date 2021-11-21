@@ -11,15 +11,15 @@ public class EsUtilities {
 
   private static final Logger LOG = LoggerFactory.getLogger(EsUtilities.class);
 
-  private final RestClientManager restClientManager;
+  private final EsClientProvider esClientProvider;
 
-  public EsUtilities(RestClientManager restClientManager) {
-    this.restClientManager = restClientManager;
+  public EsUtilities(EsClientProvider esClientProvider) {
+    this.esClientProvider = esClientProvider;
   }
 
   public boolean isEsReachable() {
     try {
-      MainResponse response = restClientManager.get().info(RequestOptions.DEFAULT);
+      MainResponse response = esClientProvider.get().info(RequestOptions.DEFAULT);
       LOG.info("Successfully reached Elasticsearch cluster, cluster information:");
       LOG.info("Cluster: {}", response.getClusterName());
       LOG.info("Version: {}", response.getVersion().getNumber());

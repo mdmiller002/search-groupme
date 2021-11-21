@@ -37,8 +37,8 @@ public class EsMessageIndex {
 
   private WriteRequest.RefreshPolicy refreshPolicy = WriteRequest.RefreshPolicy.NONE;
 
-  public EsMessageIndex(ClientProvider clientProvider, String index) {
-    this.client = clientProvider.get();
+  public EsMessageIndex(EsClientProvider esClientProvider, String index) {
+    this.client = esClientProvider.get();
     this.index = index;
     createIndex();
   }

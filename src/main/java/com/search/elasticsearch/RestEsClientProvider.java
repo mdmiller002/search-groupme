@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-public class RestClientManager implements ClientProvider {
+public class RestEsClientProvider implements EsClientProvider {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RestClientManager.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RestEsClientProvider.class);
   private final RestHighLevelClient client;
 
-  public RestClientManager(List<HttpHost> hosts) {
+  public RestEsClientProvider(List<HttpHost> hosts) {
     client = new RestHighLevelClient(RestClient.builder(hosts.toArray(new HttpHost[0])));
   }
 
