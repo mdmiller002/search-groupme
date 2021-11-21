@@ -32,15 +32,15 @@ class EsMessageIndexTest {
   private final Message tstMsg2Group1 = new Message("1111111111111111112", GROUP_1_ID, "John Doe", MSG_2_GROUP_1_TXT);
   private final Message tstMsgGroup2 = new Message("2222222222222222222", GROUP_2_ID, "Matt Miller", MSG_GROUP_2_TXT);
 
-  private ClientProvider clientProvider;
+  private EsClientProvider esClientProvider;
   private EsMessageIndex esMessageIndex;
   private BulkMessagePersist bulkMessagePersist;
 
   @BeforeEach
   public void beforeEach() {
-    clientProvider = new TestClientManager();
-    TestIndexHelper.deleteIndex(clientProvider.get(), index);
-    esMessageIndex = new EsMessageIndex(clientProvider, index);
+    esClientProvider = new TestEsClientProvider();
+    TestIndexHelper.deleteIndex(esClientProvider.get(), index);
+    esMessageIndex = new EsMessageIndex(esClientProvider, index);
     // Force index requests to wait until refresh so all tests are deterministic
     esMessageIndex.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
     bulkMessagePersist = new BulkMessagePersist(index);
@@ -48,8 +48,8 @@ class EsMessageIndexTest {
 
   @AfterEach
   public void afterEach() {
-    TestIndexHelper.deleteIndex(clientProvider.get(), index);
-    clientProvider.close();
+    TestIndexHelper.deleteIndex(esClientProvider.get(), index);
+    esClientProvider.close();
   }
 
   @Test
@@ -95,7 +95,7 @@ class EsMessageIndexTest {
   @Test
   public void testIndexCreation_Mapping() throws IOException {
     GetMappingsRequest request = new GetMappingsRequest().indices(index);
-    GetMappingsResponse response = clientProvider.get().indices().getMapping(request, RequestOptions.DEFAULT);
+    GetMappingsResponse response = esClientProvider.get().indices().getMapping(request, RequestOptions.DEFAULT);
     Map<String, MappingMetadata> mappings = response.mappings();
     MappingMetadata metadata = mappings.get(index);
     Map<String, Object> mapping = metadata.getSourceAsMap();
@@ -114,13 +114,13 @@ class EsMessageIndexTest {
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.NAME_KEY, tstMsg1Group1.getName()));
     termsList.add(new Pair<>(Message.TEXT_KEY, tstMsg1Group1.getText()));
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(clientProvider.get(), index, termsList));
-    assertTrue(TestIndexHelper.docExistsInIndexById(clientProvider.get(), index, docId));
+    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList));
+    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId));
 
     // Persisting same message should upsert instead of adding a second message
     esMessageIndex.executeBulkPersist(bulkMessagePersist);
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(clientProvider.get(), index, termsList));
-    assertTrue(TestIndexHelper.docExistsInIndexById(clientProvider.get(), index, docId));
+    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList));
+    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId));
   }
 
   @Test
@@ -146,11 +146,11 @@ class EsMessageIndexTest {
 
     esMessageIndex.executeBulkPersist(bulkMessagePersist);
 
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(clientProvider.get(), index, termsList1));
-    assertTrue(TestIndexHelper.docExistsInIndexById(clientProvider.get(), index, docId1));
+    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList1));
+    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId1));
 
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(clientProvider.get(), index, termsList2));
-    assertTrue(TestIndexHelper.docExistsInIndexById(clientProvider.get(), index, docId2));
+    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList2));
+    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId2));
   }
 
   @Test
@@ -172,8 +172,8 @@ class EsMessageIndexTest {
     esMessageIndex.executeBulkPersist(bulkMessagePersist);
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.NAME_KEY, "just_name"));
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(clientProvider.get(), index, termsList));
-    assertTrue(TestIndexHelper.docExistsInIndexById(clientProvider.get(), index, docId));
+    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList));
+    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId));
   }
 
   @Test
@@ -186,8 +186,8 @@ class EsMessageIndexTest {
     esMessageIndex.executeBulkPersist(bulkMessagePersist);
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.TEXT_KEY, "just_text"));
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(clientProvider.get(), index, termsList));
-    assertTrue(TestIndexHelper.docExistsInIndexById(clientProvider.get(), index, docId));
+    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList));
+    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId));
   }
 
   @Test

@@ -9,16 +9,16 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * TestClientManager is a client manager for tests
+ * TestClientProvider is a provider for tests
  * that simply provides a RestHighLevelClient
  * pointing to localhost:9200
  */
-public class TestClientManager implements ClientProvider {
+public class TestEsClientProvider implements EsClientProvider {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TestClientManager.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestEsClientProvider.class);
   private final RestHighLevelClient client;
 
-  public TestClientManager() {
+  public TestEsClientProvider() {
     client = new RestHighLevelClient(
         RestClient.builder(new HttpHost("localhost", 9200)));
   }

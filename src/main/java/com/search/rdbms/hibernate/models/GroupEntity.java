@@ -12,11 +12,10 @@ public class GroupEntity {
   public static final String TABLE_NAME = "GROUPS";
 
   @Id
-  String id;
-  String topPointer;
-  String bottomPointer;
-
-  boolean isInitialized;
+  private String id;
+  private String topPointer;
+  private String bottomPointer;
+  private boolean isInitialized;
 
   public GroupEntity() { }
 
@@ -51,7 +50,7 @@ public class GroupEntity {
     this.bottomPointer = bottomPointer;
   }
 
-  public boolean getInitialized() {
+  public boolean isInitialized() {
     return isInitialized;
   }
 

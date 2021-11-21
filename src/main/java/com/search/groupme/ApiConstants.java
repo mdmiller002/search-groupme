@@ -1,7 +1,7 @@
 package com.search.groupme;
 
 /**
- * All of the constants for interacting with the GroupMe API with.
+ * Constants for interacting with the GroupMe API.
  */
 class ApiConstants {
 

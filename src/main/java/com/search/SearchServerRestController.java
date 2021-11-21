@@ -1,6 +1,6 @@
 package com.search;
 
-import com.search.elasticsearch.RestClientManager;
+import com.search.elasticsearch.EsClientProvider;
 import com.search.rdbms.hibernate.models.UserEntity;
 import com.search.rdbms.hibernate.repositories.UserRepository;
 import org.slf4j.Logger;
@@ -14,10 +14,10 @@ public class SearchServerRestController {
   private static final Logger LOG = LoggerFactory.getLogger(SearchServerRestController.class);
 
   @Autowired
-  RestClientManager clientManager;
+  private EsClientProvider esClientProvider;
 
   @Autowired
-  UserRepository userRepository;
+  private UserRepository userRepository;
 
   @RequestMapping("/")
   public String index() {
