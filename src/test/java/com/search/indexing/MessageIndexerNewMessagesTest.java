@@ -1,4 +1,4 @@
-package com.search;
+package com.search.indexing;
 
 import com.search.jsonModels.Message;
 import com.search.rdbms.hibernate.models.GroupEntity;

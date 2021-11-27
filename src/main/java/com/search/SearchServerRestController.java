@@ -21,7 +21,7 @@ public class SearchServerRestController {
 
   @RequestMapping("/")
   public String index() {
-    return "Greetings from Spring Boot!";
+    return "GroupMe Search Service is up and available.\n";
   }
 
   @GetMapping(value = "/login")
@@ -29,7 +29,6 @@ public class SearchServerRestController {
   public void login(@RequestParam("access_token") String accessToken) {
     System.out.println(accessToken);
   }
-
 
   @GetMapping(value = "/newUser")
   @ResponseBody
