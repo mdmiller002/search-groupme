@@ -2,6 +2,7 @@ package com.search;
 
 import com.search.configuration.ElasticsearchConfiguration;
 import com.search.elasticsearch.EsClientProvider;
+import com.search.elasticsearch.EsMessageIndex;
 import com.search.elasticsearch.EsUtilities;
 import com.search.elasticsearch.RestEsClientProvider;
 import org.apache.http.HttpHost;
@@ -14,8 +15,10 @@ import java.util.List;
 @Configuration
 public class SearchSpringConfig {
 
+  private static final String MESSAGE_INDEX = "messages";
+
   @Bean
-  public EsClientProvider clientProvider(ElasticsearchConfiguration elasticsearchConfiguration) {
+  public EsClientProvider esClientProvider(ElasticsearchConfiguration elasticsearchConfiguration) {
     List<HttpHost> hosts = new ArrayList<>();
     for (String host : elasticsearchConfiguration.getHosts()) {
       hosts.add(new HttpHost(host, 9200));
@@ -26,6 +29,11 @@ public class SearchSpringConfig {
   @Bean
   public EsUtilities esUtilities(EsClientProvider esClientProvider) {
     return new EsUtilities(esClientProvider);
+  }
+
+  @Bean
+  public EsMessageIndex esMessageIndex(EsClientProvider esClientProvider) {
+    return new EsMessageIndex(esClientProvider, MESSAGE_INDEX);
   }
 
 }

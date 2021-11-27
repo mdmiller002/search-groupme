@@ -20,7 +20,7 @@ public class EsUtilities {
   public boolean isEsReachable() {
     try {
       MainResponse response = esClientProvider.get().info(RequestOptions.DEFAULT);
-      LOG.info("Successfully reached Elasticsearch cluster, cluster information:");
+      LOG.info("Successfully pinged Elasticsearch cluster, cluster information:");
       LOG.info("Cluster: {}", response.getClusterName());
       LOG.info("Version: {}", response.getVersion().getNumber());
       return true;

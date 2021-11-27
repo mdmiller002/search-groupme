@@ -1,4 +1,4 @@
-package com.search;
+package com.search.indexing;
 
 import com.search.elasticsearch.EsMessageIndex;
 import com.search.groupme.MessageDataSource;

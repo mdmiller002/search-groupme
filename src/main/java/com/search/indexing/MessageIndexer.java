@@ -1,4 +1,4 @@
-package com.search;
+package com.search.indexing;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.search.elasticsearch.BulkMessagePersist;
@@ -38,7 +38,7 @@ public class MessageIndexer {
     this.groupRepository = groupRepository;
   }
 
-  protected void updateGroups() {
+  public void updateGroups() {
     numMessagesPersisted = 0;
     List<Group> groups = messageDataSource.getAllGroups();
     for (Group group : groups) {

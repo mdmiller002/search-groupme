@@ -5,8 +5,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.search.configuration.ConfigConstants.ELASTICSEARCH_DOMAIN;
+
 @Component
-@ConfigurationProperties("elasticsearch")
+@ConfigurationProperties(ELASTICSEARCH_DOMAIN)
 public class ElasticsearchConfiguration {
 
   private List<String> hosts;
