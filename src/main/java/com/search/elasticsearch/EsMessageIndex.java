@@ -84,6 +84,8 @@ public class EsMessageIndex {
     id.put("type", "keyword");
     Map<String, Object> groupId = new HashMap<>();
     groupId.put("type", "keyword");
+    Map<String, Object> nameKeyword = new HashMap<>();
+    nameKeyword.put("type", "keyword");
     Map<String, Object> name = new HashMap<>();
     name.put("type", "text");
     Map<String, Object> text = new HashMap<>();
@@ -93,6 +95,7 @@ public class EsMessageIndex {
     properties.put(Message.ID_KEY, id);
     properties.put(Message.GROUP_ID_KEY, groupId);
     properties.put(Message.NAME_KEY, name);
+    properties.put(Message.NAME_KEYWORD_KEY, nameKeyword);
     properties.put(Message.TEXT_KEY, text);
     Map<String, Object> mapping = new HashMap<>();
     mapping.put("properties", properties);

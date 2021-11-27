@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.search.elasticsearch.TestIndexHelper.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class EsMessageIndexTest {
@@ -27,7 +28,7 @@ class EsMessageIndexTest {
   private static final String MSG_2_GROUP_1_TXT = "Text in message 2 group 1";
   private static final String MSG_GROUP_2_TXT = "Text in message 1 group 2";
 
-  private final String index = TestIndexHelper.TEST_INDEX;
+  private final String index = TEST_INDEX;
   private final Message tstMsg1Group1 = new Message("1111111111111111111", GROUP_1_ID, "Matt Miller", MSG_1_GROUP_1_TXT);
   private final Message tstMsg2Group1 = new Message("1111111111111111112", GROUP_1_ID, "John Doe", MSG_2_GROUP_1_TXT);
   private final Message tstMsgGroup2 = new Message("2222222222222222222", GROUP_2_ID, "Matt Miller", MSG_GROUP_2_TXT);
@@ -39,7 +40,7 @@ class EsMessageIndexTest {
   @BeforeEach
   public void beforeEach() {
     esClientProvider = new TestEsClientProvider();
-    TestIndexHelper.deleteIndex(esClientProvider.get(), index);
+    deleteIndex(esClientProvider.get(), index);
     esMessageIndex = new EsMessageIndex(esClientProvider, index);
     // Force index requests to wait until refresh so all tests are deterministic
     esMessageIndex.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
@@ -48,7 +49,7 @@ class EsMessageIndexTest {
 
   @AfterEach
   public void afterEach() {
-    TestIndexHelper.deleteIndex(esClientProvider.get(), index);
+    deleteIndex(esClientProvider.get(), index);
     esClientProvider.close();
   }
 
@@ -61,7 +62,8 @@ class EsMessageIndexTest {
         "\"id\":\"" + tstMsg1Group1.getId() + "\"," +
         "\"name\":\"" + tstMsg1Group1.getName() + "\"," +
         "\"text\":\"" + tstMsg1Group1.getText() + "\"," +
-        "\"group_id\":\"" + tstMsg1Group1.getGroupId() +
+        "\"group_id\":\"" + tstMsg1Group1.getGroupId() + "\"," +
+        "\"name_keyword\":\"" + tstMsg1Group1.getNameKeyword() +
         "\"}";
     assertEquals(expected, optional.get());
   }
@@ -100,7 +102,7 @@ class EsMessageIndexTest {
     MappingMetadata metadata = mappings.get(index);
     Map<String, Object> mapping = metadata.getSourceAsMap();
 
-    String expected = "{properties={group_id={type=keyword}, name={type=text}, id={type=keyword}, text={type=text}}}";
+    String expected = "{properties={name_keyword={type=keyword}, group_id={type=keyword}, name={type=text}, id={type=keyword}, text={type=text}}}";
     assertEquals(expected, mapping.toString());
   }
 
@@ -111,16 +113,40 @@ class EsMessageIndexTest {
     Optional<String> docIdOptional = tstMsg1Group1.getDocId();
     assertTrue(docIdOptional.isPresent());
     String docId = docIdOptional.get();
+
+    assertTrue(doesDocExistById(esClientProvider.get(), index, docId));
+
+    // Assert message is searchable by both TEXT criteria
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.NAME_KEY, tstMsg1Group1.getName()));
     termsList.add(new Pair<>(Message.TEXT_KEY, tstMsg1Group1.getText()));
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList));
-    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
+
+    // Assert all individual fields are in the index and the message can be retrieved by any
+    termsList = new ArrayList<>();
+    termsList.add(new Pair<>(Message.NAME_KEY, tstMsg1Group1.getName()));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
+
+    termsList = new ArrayList<>();
+    termsList.add(new Pair<>(Message.TEXT_KEY, tstMsg1Group1.getText()));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
+
+    termsList = new ArrayList<>();
+    termsList.add(new Pair<>(Message.NAME_KEYWORD_KEY, tstMsg1Group1.getNameKeyword()));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
+
+    termsList = new ArrayList<>();
+    termsList.add(new Pair<>(Message.ID_KEY, tstMsg1Group1.getId()));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
+
+    termsList = new ArrayList<>();
+    termsList.add(new Pair<>(Message.GROUP_ID_KEY, tstMsg1Group1.getGroupId()));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
 
     // Persisting same message should upsert instead of adding a second message
     esMessageIndex.executeBulkPersist(bulkMessagePersist);
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList));
-    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
+    assertTrue(doesDocExistById(esClientProvider.get(), index, docId));
   }
 
   @Test
@@ -146,11 +172,11 @@ class EsMessageIndexTest {
 
     esMessageIndex.executeBulkPersist(bulkMessagePersist);
 
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList1));
-    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId1));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList1));
+    assertTrue(doesDocExistById(esClientProvider.get(), index, docId1));
 
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList2));
-    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId2));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList2));
+    assertTrue(doesDocExistById(esClientProvider.get(), index, docId2));
   }
 
   @Test
@@ -172,8 +198,8 @@ class EsMessageIndexTest {
     esMessageIndex.executeBulkPersist(bulkMessagePersist);
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.NAME_KEY, "just_name"));
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList));
-    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
+    assertTrue(doesDocExistById(esClientProvider.get(), index, docId));
   }
 
   @Test
@@ -186,8 +212,8 @@ class EsMessageIndexTest {
     esMessageIndex.executeBulkPersist(bulkMessagePersist);
     List<Pair<String, Object>> termsList = new ArrayList<>();
     termsList.add(new Pair<>(Message.TEXT_KEY, "just_text"));
-    assertEquals(1, TestIndexHelper.docSearchableByTerms(esClientProvider.get(), index, termsList));
-    assertTrue(TestIndexHelper.docExistsInIndexById(esClientProvider.get(), index, docId));
+    assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
+    assertTrue(doesDocExistById(esClientProvider.get(), index, docId));
   }
 
   @Test

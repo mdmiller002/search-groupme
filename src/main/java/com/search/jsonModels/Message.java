@@ -23,6 +23,7 @@ public class Message {
   public static final String ID_KEY = "id";
   public static final String GROUP_ID_KEY = "group_id";
   public static final String NAME_KEY = "name";
+  public static final String NAME_KEYWORD_KEY = "name_keyword";
   public static final String TEXT_KEY = "text";
 
   public Message() { }
@@ -56,6 +57,15 @@ public class Message {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  /**
+   * Duplicate the sender name when serializing the object, so that we can persist
+   * both a text-searchable name, and a keyword-matchable name.
+   */
+  @JsonProperty(NAME_KEYWORD_KEY)
+  public String getNameKeyword() {
+    return name;
   }
 
   public String getText() {
