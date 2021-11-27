@@ -62,11 +62,11 @@ public class TestIndexHelper {
   }
 
   /**
-   * Determine if a document exists in an index based on a list of
-   * search terms. Search terms are passed through a match query
+   * Get the number of search hits when searching the provided index
+   * for the specified terms. Search terms are passed through a match query
    * Return the number of search hits retrieved by the query
    */
-  public static long docSearchableByTerms(RestHighLevelClient client, String index, List<Pair<String, Object>> terms) {
+  public static long numSearchHitsWithSearchTerms(RestHighLevelClient client, String index, List<Pair<String, Object>> terms) {
     if (terms == null || terms.size() <= 0) {
       LOG.warn("No search terms provided to check if document exists in Index");
       return 0;
@@ -91,7 +91,7 @@ public class TestIndexHelper {
   /**
    * Determine if a document with the specified doc ID exists in the index
    */
-  public static boolean docExistsInIndexById(RestHighLevelClient client, String index, String docId) {
+  public static boolean doesDocExistById(RestHighLevelClient client, String index, String docId) {
     try {
       GetRequest getRequest = new GetRequest(index, docId);
       GetResponse getResponse = client.get(getRequest, RequestOptions.DEFAULT);
