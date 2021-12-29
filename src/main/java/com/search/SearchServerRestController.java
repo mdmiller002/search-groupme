@@ -33,7 +33,7 @@ public class SearchServerRestController {
   @ResponseBody
   public void newUser(@RequestParam String username,
                       @RequestParam String accessToken) {
-    LOG.debug("Received new user request with username " + username);
+    LOG.debug("Received new user request with username {}", username);
     UserEntity user;
     if (userRepository.existsById(username)) {
       LOG.debug("User {} exists, updating access token.", username);

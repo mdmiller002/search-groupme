@@ -39,13 +39,13 @@ public class TestIndexHelper {
         DeleteIndexRequest request = new DeleteIndexRequest(index);
         AcknowledgedResponse response = client.indices().delete(request, RequestOptions.DEFAULT);
         if (!response.isAcknowledged()) {
-          LOG.warn("Delete index response was unacknowledged: " + response);
+          LOG.warn("Delete index response was unacknowledged: {}", response);
         }
       } else {
-        LOG.info("Index [" + index + "] does not exist -- not deleting");
+        LOG.info("Index [{}] does not exist -- not deleting", index);
       }
     } catch (IOException | ElasticsearchStatusException e) {
-      LOG.error("Unable to delete index " + index, e);
+      LOG.error("Unable to delete index {}", index, e);
     }
   }
 
@@ -83,7 +83,7 @@ public class TestIndexHelper {
       SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
       return searchResponse.getHits().getTotalHits().value;
     } catch (IOException e) {
-      LOG.error("Unable to search on index " + index, e);
+      LOG.error("Unable to search on index {}", index, e);
     }
     return 0;
   }
@@ -97,7 +97,7 @@ public class TestIndexHelper {
       GetResponse getResponse = client.get(getRequest, RequestOptions.DEFAULT);
       return getResponse.isExists() && index.equals(getResponse.getIndex()) && docId.equals(getResponse.getId());
     } catch (IOException e) {
-      LOG.error("Unable to execute get request on index " + index, e);
+      LOG.error("Unable to execute get request on index {}", index, e);
     }
     return false;
   }

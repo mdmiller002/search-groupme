@@ -48,7 +48,7 @@ public class BulkMessagePersist {
       LOG.warn("Unable to add null message to bulk request");
       return;
     }
-    LOG.debug("Adding message [" + message + "] to bulk request");
+    LOG.debug("Adding message [{}] to bulk request", message);
     Optional<String> docIdOptional = message.getDocId();
     if (docIdOptional.isEmpty()) {
       LOG.warn("Unable to create doc ID for message");
@@ -60,7 +60,7 @@ public class BulkMessagePersist {
     if (messageStrOptional.isPresent()) {
       addMessage0(docId, messageStrOptional.get());
     } else {
-      LOG.warn("Message unable to be converted to JSON -- not adding to bulk [" + message + "]");
+      LOG.warn("Message unable to be converted to JSON -- not adding to bulk [{}]", message);
     }
   }
 

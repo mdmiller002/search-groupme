@@ -60,13 +60,13 @@ public class EsMessageIndex {
     try {
       if (!indexExists()) {
         Map<String, Object> mapping = getMapping();
-        LOG.info("Creating new index " + index + " with mapping " + mapping);
+        LOG.info("Creating new index {} with mapping {}", index, mapping);
         CreateIndexRequest createIndexRequest = new CreateIndexRequest(index);
         createIndexRequest.mapping(mapping);
         client.indices().create(createIndexRequest, RequestOptions.DEFAULT);
       }
     } catch (IOException e) {
-      LOG.error("Failed to create index " + index, e);
+      LOG.error("Failed to create index {}", index, e);
     }
   }
 
@@ -122,12 +122,12 @@ public class EsMessageIndex {
    * Search using generic match queries
    */
   public List<Message> searchForMessage(Message message) {
-    LOG.debug("Searching for message [" + message + "]");
+    LOG.debug("Searching for message [{}]", message);
     if (message == null) {
       return Collections.emptyList();
     }
     if (message.getGroupId() == null) {
-      LOG.debug("Searching for message [" + message + "] with null group ID - returning null");
+      LOG.debug("Searching for message [{}] with null group ID - returning null", message);
       return Collections.emptyList();
     }
     List<Pair<String, Object>> searchTerms = new ArrayList<>();
@@ -137,7 +137,7 @@ public class EsMessageIndex {
     if (message.getText() != null) {
       searchTerms.add(new Pair<>(Message.TEXT_KEY, message.getText()));
     }
-    LOG.debug("Using search terms " + searchTerms);
+    LOG.debug("Using search terms {}", searchTerms);
     return executeSearch(message.getGroupId(), searchTerms);
   }
 
@@ -147,7 +147,7 @@ public class EsMessageIndex {
       SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
       return processSearchResponse(searchResponse);
     } catch (IOException e) {
-      LOG.error("Unable to search on index " + index, e);
+      LOG.error("Unable to search on index {}", index, e);
     }
     return Collections.emptyList();
   }
@@ -186,7 +186,7 @@ public class EsMessageIndex {
       ObjectMapper mapper = new ObjectMapper();
       return Optional.of(mapper.writeValueAsString(message));
     } catch (JsonProcessingException e) {
-      LOG.error("Unable to convert message to string. Message: " + message, e);
+      LOG.error("Unable to convert message to string. Message: {}", message, e);
     }
     return Optional.empty();
   }
@@ -199,7 +199,7 @@ public class EsMessageIndex {
       ObjectMapper mapper = new ObjectMapper();
       return Optional.of(mapper.readValue(json, Message.class));
     } catch (JsonProcessingException e) {
-      LOG.error("Unable to convert JSON string to message. JSON: " + json, e);
+      LOG.error("Unable to convert JSON string to message. JSON: {}", json, e);
     }
     return Optional.empty();
   }
