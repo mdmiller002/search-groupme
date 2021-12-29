@@ -288,4 +288,18 @@ class EsMessageIndexTest {
     assertTrue(messages.contains(tstMsg1Group1));
   }
 
+  @Test
+  public void testSearchMessage_NoNameOrTextGiven() {
+    bulkMessagePersist.addMessage(tstMsg1Group1);
+    bulkMessagePersist.addMessage(tstMsg2Group1);
+    esMessageIndex.executeBulkPersist(bulkMessagePersist);
+
+    Message msg = new Message();
+    msg.setGroupId(GROUP_1_ID);
+
+    List<Message> messages = esMessageIndex.searchForMessage(msg);
+    assertEquals(2, messages.size());
+    assertTrue(messages.contains(tstMsg1Group1));
+    assertTrue(messages.contains(tstMsg2Group1));
+  }
 }
