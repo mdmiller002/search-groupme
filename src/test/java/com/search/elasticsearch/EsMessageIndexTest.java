@@ -63,7 +63,7 @@ class EsMessageIndexTest {
         "\"name\":\"" + tstMsg1Group1.getName() + "\"," +
         "\"text\":\"" + tstMsg1Group1.getText() + "\"," +
         "\"group_id\":\"" + tstMsg1Group1.getGroupId() + "\"," +
-        "\"name_keyword\":\"" + tstMsg1Group1.getNameKeyword() +
+        "\"name_keyword\":\"" + tstMsg1Group1.getName() +
         "\"}";
     assertEquals(expected, optional.get());
   }
@@ -132,7 +132,7 @@ class EsMessageIndexTest {
     assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
 
     termsList = new ArrayList<>();
-    termsList.add(new Pair<>(Message.NAME_KEYWORD_KEY, tstMsg1Group1.getNameKeyword()));
+    termsList.add(new Pair<>(Message.NAME_KEYWORD_KEY, tstMsg1Group1.getName()));
     assertEquals(1, numSearchHitsWithSearchTerms(esClientProvider.get(), index, termsList));
 
     termsList = new ArrayList<>();
