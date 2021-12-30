@@ -42,7 +42,7 @@ public class MessageIndexer {
     numMessagesPersisted = 0;
     List<Group> groups = messageDataSource.getAllGroups();
     for (Group group : groups) {
-      LOG.debug("Running update algorithm for group " + group);
+      LOG.debug("Running update algorithm for group {}", group);
       if (!groupRepository.existsById(group.getId())) {
         LOG.debug("Group not indexed yet, creating new entry in RDBMS");
         GroupEntity groupEntity = new GroupEntity(group.getId(), null, null, false);
@@ -55,7 +55,7 @@ public class MessageIndexer {
   private void runUpdateAlgorithm(String groupId) {
     Optional<GroupEntity> groupEntityOptional = groupRepository.findById(groupId);
     if (groupEntityOptional.isEmpty()) {
-      LOG.error("Group ID " + groupId + " not found in RDBMS");
+      LOG.error("Group ID {} not found in RDBMS", groupId);
       return;
     }
     GroupEntity groupEntity = groupEntityOptional.get();

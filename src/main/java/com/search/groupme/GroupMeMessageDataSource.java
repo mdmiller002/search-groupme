@@ -38,8 +38,8 @@ public class GroupMeMessageDataSource implements MessageDataSource {
   }
 
   public Optional<List<Message>> getMessageBatch(String groupId, MessageQueryType type, String messageId) {
-    LOG.debug("Getting message batch from group " + groupId + " with query type " + type +
-        " from message ID " + messageId);
+    LOG.debug("Getting message batch from group {} with query type {} from message ID {}",
+        groupId, type, messageId);
     try {
       URIBuilder uriBuilder = new URIBuilder(getUriForMessages(groupId));
       uriBuilder.addParameter(TOKEN, accessToken);
@@ -50,17 +50,17 @@ public class GroupMeMessageDataSource implements MessageDataSource {
       }
 
       URL url = new URL(uriBuilder.build().toString());
-      LOG.debug("Making request to: " + url);
+      LOG.debug("Making request to: {}", url);
       InputStream responseStream = requestMaker.makeRequest(url);
 
       ObjectMapper mapper = new ObjectMapper();
       MessageResponseWrapper messageResponseWrapper = mapper.readValue(responseStream, MessageResponseWrapper.class);
 
       List<Message> messages = messageResponseWrapper.getResponse().getMessages();
-      LOG.debug("Received " + messages.size() + " messages");
+      LOG.debug("Received {} messages", messages.size());
       if (messages.size() > 0) {
-        LOG.debug("First message: [" + messages.get(0) + "]");
-        LOG.debug("Last message: [" + messages.get(messages.size() - 1) + "]");
+        LOG.debug("First message: [{}]", messages.get(0));
+        LOG.debug("Last message: [{}]", messages.get(messages.size() - 1));
       }
       return Optional.of(messages);
     } catch (Exception e) {
@@ -118,16 +118,16 @@ public class GroupMeMessageDataSource implements MessageDataSource {
       uriBuilder.addParameter(PAGE, Integer.toString(page));
       uriBuilder.addParameter(PER_PAGE, Integer.toString(PAGE_SIZE));
       URL url = new URL(uriBuilder.build().toString());
-      LOG.debug("Making request to: " + url);
+      LOG.debug("Making request to: {}", url);
       InputStream responseStream = requestMaker.makeRequest(url);
       ObjectMapper mapper = new ObjectMapper();
 
       GroupResponseWrapper groupResponseWrapper = mapper.readValue(responseStream, GroupResponseWrapper.class);
       List<Group> groups = groupResponseWrapper.getResponse();
-      LOG.debug("Received " + groups.size() + " groups");
+      LOG.debug("Received {} groups", groups.size());
       if (groups.size() > 0) {
-        LOG.debug("First group: [" + groups.get(0) + "]");
-        LOG.debug("Last group: [" + groups.get(groups.size() - 1) + "]");
+        LOG.debug("First group: [{}]", groups.get(0));
+        LOG.debug("Last group: [{}]", groups.get(groups.size() - 1));
       }
       return Optional.of(groupResponseWrapper.getResponse());
     } catch (Exception e) {
