@@ -2,6 +2,7 @@ package com.search.elasticsearch;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.search.jsonModels.EsMessageDocument;
 import com.search.jsonModels.Message;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.search.SearchRequest;
@@ -184,7 +185,8 @@ public class EsMessageIndex {
     }
     try {
       ObjectMapper mapper = new ObjectMapper();
-      return Optional.of(mapper.writeValueAsString(message));
+      EsMessageDocument esMessage = new EsMessageDocument(message);
+      return Optional.of(mapper.writeValueAsString(esMessage));
     } catch (JsonProcessingException e) {
       LOG.error("Unable to convert message to string. Message: {}", message, e);
     }
@@ -197,7 +199,9 @@ public class EsMessageIndex {
     }
     try {
       ObjectMapper mapper = new ObjectMapper();
-      return Optional.of(mapper.readValue(json, Message.class));
+      EsMessageDocument esMessage = mapper.readValue(json, EsMessageDocument.class);
+      return Optional.of(new Message(
+          esMessage.getId(), esMessage.getGroupId(), esMessage.getName(), esMessage.getText()));
     } catch (JsonProcessingException e) {
       LOG.error("Unable to convert JSON string to message. JSON: {}", json, e);
     }

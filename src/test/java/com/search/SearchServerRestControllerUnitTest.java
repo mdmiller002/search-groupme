@@ -125,8 +125,8 @@ public class SearchServerRestControllerUnitTest {
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().json("{\"numResults\":2,\"results\":[" +
-            "{\"id\":\"1\",\"name\":\"a\",\"text\":\"msg1\",\"group_id\":\"group1\",\"name_keyword\":\"a\"}," +
-            "{\"id\":\"2\",\"name\":\"b\",\"text\":\"msg2\",\"group_id\":\"group1\",\"name_keyword\":\"b\"}]}"));
+            "{\"id\":\"1\",\"name\":\"a\",\"text\":\"msg1\",\"group_id\":\"group1\"}," +
+            "{\"id\":\"2\",\"name\":\"b\",\"text\":\"msg2\",\"group_id\":\"group1\"}]}"));
 
     // Searching for group 1 msg1 will retrieve just that message
     mvc.perform(get(SEARCH_API)
@@ -137,7 +137,7 @@ public class SearchServerRestControllerUnitTest {
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().json("{\"numResults\":1,\"results\":[" +
-            "{\"id\":\"1\",\"name\":\"a\",\"text\":\"msg1\",\"group_id\":\"group1\",\"name_keyword\":\"a\"}]}"));
+            "{\"id\":\"1\",\"name\":\"a\",\"text\":\"msg1\",\"group_id\":\"group1\"}]}"));
 
     // Searching for group 1 name a will retrieve just one message
     mvc.perform(get(SEARCH_API)
@@ -148,7 +148,7 @@ public class SearchServerRestControllerUnitTest {
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().json("{\"numResults\":1,\"results\":[" +
-            "{\"id\":\"1\",\"name\":\"a\",\"text\":\"msg1\",\"group_id\":\"group1\",\"name_keyword\":\"a\"}]}"));
+            "{\"id\":\"1\",\"name\":\"a\",\"text\":\"msg1\",\"group_id\":\"group1\"}]}"));
 
     // Searching for group 1 name b msg2 will retrieve just that message
     mvc.perform(get(SEARCH_API)
@@ -160,6 +160,6 @@ public class SearchServerRestControllerUnitTest {
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().json("{\"numResults\":1,\"results\":[" +
-            "{\"id\":\"2\",\"name\":\"b\",\"text\":\"msg2\",\"group_id\":\"group1\",\"name_keyword\":\"b\"}]}"));
+            "{\"id\":\"2\",\"name\":\"b\",\"text\":\"msg2\",\"group_id\":\"group1\"}]}"));
   }
 }

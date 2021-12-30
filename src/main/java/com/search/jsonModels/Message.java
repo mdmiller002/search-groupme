@@ -59,15 +59,6 @@ public class Message {
     this.name = name;
   }
 
-  /**
-   * Duplicate the sender name when serializing the object, so that we can persist
-   * both a text-searchable name, and a keyword-matchable name.
-   */
-  @JsonProperty(NAME_KEYWORD_KEY)
-  public String getNameKeyword() {
-    return name;
-  }
-
   public String getText() {
     return text;
   }
