@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.search.elasticsearch.EsMessageIndex;
 import com.search.jsonModels.Message;
 import com.search.jsonModels.SearchResponse;
+import com.search.jsonModels.ServerStatus;
 import com.search.rdbms.hibernate.models.UserEntity;
 import com.search.rdbms.hibernate.repositories.UserRepository;
 import org.slf4j.Logger;
@@ -25,13 +26,13 @@ public class SearchServerRestController {
   private UserRepository userRepository;
 
   @RequestMapping("/")
-  public String index() {
-    return "GroupMe Search Service is up and available.\n";
+  public ServerStatus index() {
+    return new ServerStatus("GroupMe Search Service is up and available.");
   }
 
-  @PostMapping(value = "/newUser")
+  @PostMapping(value = "/users")
   @ResponseBody
-  public void newUser(@RequestParam String username,
+  public void users(@RequestParam String username,
                       @RequestParam String accessToken) {
     LOG.debug("Received new user request with username {}", username);
     UserEntity user;
@@ -46,9 +47,9 @@ public class SearchServerRestController {
     userRepository.save(user);
   }
 
-  @GetMapping(value = "/search")
+  @GetMapping(value = "/messages")
   @ResponseBody
-  public SearchResponse search(@RequestParam String username,
+  public SearchResponse messages(@RequestParam String username,
                      @RequestParam String accessToken,
                      @RequestParam String groupId,
                      @RequestParam(required = false) String name,

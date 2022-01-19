@@ -44,8 +44,8 @@ public class SearchServerRestControllerUnitTest {
   private static final String NAME_KEY = "name";
   private static final String TEXT_KEY = "text";
 
-  private static final String NEW_USER_API = "/newUser";
-  private static final String SEARCH_API = "/search";
+  private static final String NEW_USER_API = "/users";
+  private static final String SEARCH_API = "/messages";
 
   @Autowired private MockMvc mvc;
   @Autowired private UserRepository userRepository;
@@ -70,13 +70,12 @@ public class SearchServerRestControllerUnitTest {
   public void testGetRoot() throws Exception {
     mvc.perform(get("/").accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(content().string(equalTo("GroupMe Search Service is up and available.\n")));
-
+        .andExpect(content().string(equalTo("{\"message\":\"GroupMe Search Service is up and available.\"}")));
   }
 
   @Test
   public void testNewUser() throws Exception {
-    // when we hit /newUser with new use details
+    // when we hit /users with new use details
     mvc.perform(post(NEW_USER_API)
         .param(USERNAME_KEY, USER2)
         .param(ACCESS_TOKEN_KEY, TOKEN1)
@@ -90,7 +89,7 @@ public class SearchServerRestControllerUnitTest {
     assertEquals(USER2, user.getUsername());
     assertEquals(TOKEN1, user.getToken());
 
-    // And when we hit /newUser with the same user but a different token
+    // And when we hit /users with the same user but a different token
     mvc.perform(post(NEW_USER_API)
         .param(USERNAME_KEY, USER2)
         .param(ACCESS_TOKEN_KEY, TOKEN2)
