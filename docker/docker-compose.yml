@@ -1,7 +1,7 @@
 version: "2.2"
 services:
   elasticsearch:
-    image: "docker.elastic.co/elasticsearch/elasticsearch:7.9.2"
+    image: "docker.elastic.co/elasticsearch/elasticsearch:7.17.0"
     container_name: elasticsearch
     ports:
       - "9200:9200"
@@ -14,3 +14,29 @@ services:
       memlock:
         soft: -1
         hard: -1
+    networks:
+      - elastic
+
+  kibana:
+    image: "docker.elastic.co/kibana/kibana:7.17.0"
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      SERVER_NAME: kibana
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+    networks:
+      - elastic
+
+  groupme_mockserver:
+    image: "mockserver/mockserver:mockserver-5.12.0"
+    container_name: groupme_mockserver
+    ports:
+      - "1080:1080"
+    environment:
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/initializer.json
+    volumes:
+      - "./mockserver/groupme-mockserver-initializer.json:/config/initializer.json"
+
+networks:
+  elastic: {}

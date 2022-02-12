@@ -2,7 +2,9 @@ package com.search;
 
 import com.search.elasticsearch.EsMessageIndex;
 import com.search.jsonModels.Message;
-import com.search.rdbms.hibernate.models.UserEntity;
+import com.search.jsonModels.api.MessagesResponse;
+import com.search.jsonModels.api.ServerStatus;
+import com.search.jsonModels.api.UsersResponse;
 import com.search.rdbms.hibernate.repositories.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,12 +17,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static com.search.JsonTestUtils.toJson;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -33,9 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class SearchServerRestControllerUnitTest {
 
   private static final String USER1 = "user1";
-  private static final String USER2 = "user2";
   private static final String TOKEN1 = "token123";
-  private static final String TOKEN2 = "token456";
   private static final String GROUP1 = "group1";
 
   private static final String USERNAME_KEY = "username";
@@ -54,11 +52,13 @@ public class SearchServerRestControllerUnitTest {
 
   @BeforeEach
   public void beforeEach() throws Exception {
+    userRepository.deleteAll();
     mvc.perform(post(NEW_USER_API)
             .param(USERNAME_KEY, USER1)
             .param(ACCESS_TOKEN_KEY, TOKEN1)
             .accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(content().json(toJson(new UsersResponse("Created new user user1"))));
   }
 
   @AfterEach
@@ -70,38 +70,7 @@ public class SearchServerRestControllerUnitTest {
   public void testGetRoot() throws Exception {
     mvc.perform(get("/").accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(content().string(equalTo("{\"message\":\"GroupMe Search Service is up and available.\"}")));
-  }
-
-  @Test
-  public void testNewUser() throws Exception {
-    // when we hit /users with new use details
-    mvc.perform(post(NEW_USER_API)
-        .param(USERNAME_KEY, USER2)
-        .param(ACCESS_TOKEN_KEY, TOKEN1)
-        .accept(MediaType.APPLICATION_JSON))
-      .andExpect(status().isOk());
-
-    // Then a new user has been persisted to the database correctly
-    Optional<UserEntity> persistedOptional = userRepository.findById(USER2);
-    assertTrue(persistedOptional.isPresent());
-    UserEntity user = persistedOptional.get();
-    assertEquals(USER2, user.getUsername());
-    assertEquals(TOKEN1, user.getToken());
-
-    // And when we hit /users with the same user but a different token
-    mvc.perform(post(NEW_USER_API)
-        .param(USERNAME_KEY, USER2)
-        .param(ACCESS_TOKEN_KEY, TOKEN2)
-        .accept(MediaType.APPLICATION_JSON))
-      .andExpect(status().isOk());
-
-    // Then that user gets updated in the database
-    persistedOptional = userRepository.findById(USER2);
-    assertTrue(persistedOptional.isPresent());
-    UserEntity user2 = persistedOptional.get();
-    assertEquals(USER2, user2.getUsername());
-    assertEquals(TOKEN2, user2.getToken());
+        .andExpect(content().json(toJson(new ServerStatus("GroupMe Search Service is up and available."))));
   }
 
   @Test
@@ -160,5 +129,19 @@ public class SearchServerRestControllerUnitTest {
         .andExpect(status().isOk())
         .andExpect(content().json("{\"numResults\":1,\"results\":[" +
             "{\"id\":\"2\",\"name\":\"b\",\"text\":\"msg2\",\"group_id\":\"group1\"}]}"));
+  }
+
+  @Test
+  public void testSearch_noResults() throws Exception {
+    when(esMessageIndex.searchForMessage(any())).thenReturn(Collections.emptyList());
+    mvc.perform(get(SEARCH_API)
+            .param(USERNAME_KEY, USER1)
+            .param(ACCESS_TOKEN_KEY, TOKEN1)
+            .param(GROUP_ID_KEY, GROUP1)
+            .param(NAME_KEY, "a")
+            .param(TEXT_KEY, "msg1")
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().json(toJson(new MessagesResponse(0, Collections.emptyList()))));
   }
 }

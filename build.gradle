@@ -7,6 +7,7 @@ plugins {
 
 ext {
   springBootVersion = "2.3.4.RELEASE"
+  elasticVersion = "7.17.0"
 }
 
 group = 'com.search'
@@ -25,9 +26,9 @@ dependencies {
   testImplementation group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: "$springBootVersion"
   runtimeOnly 'com.h2database:h2'
-  compile group: 'org.elasticsearch', name: 'elasticsearch', version: '7.9.2'
-  compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: '7.9.2'
-  compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-client', version: '7.9.2'
+  compile group: 'org.elasticsearch', name: 'elasticsearch', version: "$elasticVersion"
+  compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: "$elasticVersion"
+  compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-client', version: "$elasticVersion"
   compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.11.3'
   compile group: 'org.javatuples', name: 'javatuples', version: '1.2'
   compile group: 'commons-io', name: 'commons-io', version: '2.5'

@@ -12,6 +12,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.javatuples.Pair;
 import org.slf4j.Logger;
@@ -46,6 +47,25 @@ public class TestIndexHelper {
       }
     } catch (IOException | ElasticsearchStatusException e) {
       LOG.error("Unable to delete index {}", index, e);
+    }
+  }
+
+  /**
+   * Delete all data from the specified index
+   */
+  public static void deleteDataFromIndex(RestHighLevelClient client, String index) {
+    LOG.info("Deleting data from index {}", index);
+    try {
+      if (!indexExists(client, index)) {
+        LOG.info("Attempting to delete from an index which doesn't exist, returning");
+        return;
+      }
+      DeleteByQueryRequest request = new DeleteByQueryRequest(index);
+      request.setQuery(QueryBuilders.matchAllQuery());
+      request.setRefresh(true);
+      client.deleteByQuery(request, RequestOptions.DEFAULT);
+    } catch (IOException e) {
+      LOG.error("Unable to delete by query", e);
     }
   }
 

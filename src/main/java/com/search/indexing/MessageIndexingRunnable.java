@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
+import static com.search.configuration.ConfigConstants.GROUP_ME_API_KEY;
 import static com.search.configuration.ConfigConstants.RUN_INDEXING_KEY;
 
 public abstract class MessageIndexingRunnable implements Runnable {
@@ -15,6 +16,7 @@ public abstract class MessageIndexingRunnable implements Runnable {
 
   protected final GroupRepository groupRepository;
   protected final EsMessageIndex esMessageIndex;
+  protected final String groupMeApiEndpoint;
 
   private final Environment env;
   private final UserRepository userRepository;
@@ -24,6 +26,7 @@ public abstract class MessageIndexingRunnable implements Runnable {
   public MessageIndexingRunnable(Environment env, UserRepository userRepository, GroupRepository groupRepository,
                                  EsMessageIndex esMessageIndex) {
     this.env = env;
+    this.groupMeApiEndpoint = env.getProperty(GROUP_ME_API_KEY);
     this.userRepository = userRepository;
     this.groupRepository = groupRepository;
     this.esMessageIndex = esMessageIndex;
@@ -32,7 +35,7 @@ public abstract class MessageIndexingRunnable implements Runnable {
 
   @Override
   public void run() {
-    LOG.info("Running message indexing thread.");
+    LOG.info("Running message indexing thread with GroupMe API host: {}.", groupMeApiEndpoint);
     while (true) {
       runIndexingIteration();
       if (!usersExist) {
