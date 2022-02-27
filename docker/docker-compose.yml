@@ -38,5 +38,13 @@ services:
     volumes:
       - "./mockserver/groupme-mockserver-initializer.json:/config/initializer.json"
 
+  prometheus:
+    image: "prom/prometheus:v2.33.4"
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+
 networks:
   elastic: {}
