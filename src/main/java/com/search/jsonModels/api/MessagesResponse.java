@@ -1,13 +1,15 @@
-package com.search.jsonModels;
+package com.search.jsonModels.api;
+
+import com.search.jsonModels.Message;
 
 import java.util.List;
 
-public class SearchResponse {
+public class MessagesResponse {
 
   private final long numResults;
   private final List<Message> results;
 
-  public SearchResponse(long numResults, List<Message> results) {
+  public MessagesResponse(long numResults, List<Message> results) {
     this.numResults = numResults;
     this.results = results;
   }

@@ -1,8 +1,8 @@
 package com.search.groupme;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.search.jsonModels.Message;
 import com.search.jsonModels.Group;
+import com.search.jsonModels.Message;
 import com.search.jsonModels.wrappers.GroupResponseWrapper;
 import com.search.jsonModels.wrappers.MessageResponseWrapper;
 import org.apache.http.client.utils.URIBuilder;
@@ -23,12 +23,14 @@ public class GroupMeMessageDataSource implements MessageDataSource {
 
   private final String accessToken;
   private final GroupmeRequestMaker requestMaker;
+  private final String groupMeApiEndpoint;
 
-  public GroupMeMessageDataSource(String accessToken) {
-    this(accessToken, new GroupmeRequestMaker());
+  public GroupMeMessageDataSource(String groupMeApiEndpoint, String accessToken) {
+    this(groupMeApiEndpoint, accessToken, new GroupmeRequestMaker());
   }
 
-  public GroupMeMessageDataSource(String accessToken, GroupmeRequestMaker requestMaker) {
+  public GroupMeMessageDataSource(String groupMeApiEndpoint, String accessToken, GroupmeRequestMaker requestMaker) {
+    this.groupMeApiEndpoint = groupMeApiEndpoint;
     this.accessToken = accessToken;
     this.requestMaker = requestMaker;
   }
@@ -70,7 +72,7 @@ public class GroupMeMessageDataSource implements MessageDataSource {
   }
 
   private URI getUriForMessages(String groupId) {
-    UriTemplate uriTemplate = new UriTemplate(URL + "/groups/{group_id}/messages");
+    UriTemplate uriTemplate = new UriTemplate(groupMeApiEndpoint + "/groups/{group_id}/messages");
     Map<String, String> uriVariables = new HashMap<>();
     uriVariables.put(GROUP_ID, groupId);
     return uriTemplate.expand(uriVariables);
@@ -112,7 +114,7 @@ public class GroupMeMessageDataSource implements MessageDataSource {
 
   private Optional<List<Group>> getGroupsInPage(int page) {
     try {
-      URIBuilder uriBuilder = new URIBuilder(URL + "/groups");
+      URIBuilder uriBuilder = new URIBuilder(groupMeApiEndpoint + "/groups");
       uriBuilder.addParameter(TOKEN, accessToken);
       uriBuilder.addParameter(OMIT, "memberships");
       uriBuilder.addParameter(PAGE, Integer.toString(page));

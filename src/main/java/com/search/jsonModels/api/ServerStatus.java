@@ -1,4 +1,4 @@
-package com.search.jsonModels;
+package com.search.jsonModels.api;
 
 public class ServerStatus {
 

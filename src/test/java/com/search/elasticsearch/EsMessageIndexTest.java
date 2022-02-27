@@ -1,7 +1,6 @@
 package com.search.elasticsearch;
 
 import com.search.jsonModels.Message;
-import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.indices.GetMappingsRequest;
 import org.elasticsearch.client.indices.GetMappingsResponse;
@@ -18,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.search.elasticsearch.TestIndexHelper.*;
+import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.WAIT_UNTIL;
 import static org.junit.jupiter.api.Assertions.*;
 
 class EsMessageIndexTest {
@@ -43,7 +43,7 @@ class EsMessageIndexTest {
     deleteIndex(esClientProvider.get(), index);
     esMessageIndex = new EsMessageIndex(esClientProvider, index);
     // Force index requests to wait until refresh so all tests are deterministic
-    esMessageIndex.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
+    esMessageIndex.setRefreshPolicy(WAIT_UNTIL);
     bulkMessagePersist = new BulkMessagePersist(index);
   }
 

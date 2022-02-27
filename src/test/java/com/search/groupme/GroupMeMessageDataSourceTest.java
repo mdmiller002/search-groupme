@@ -72,7 +72,7 @@ class GroupMeMessageDataSourceTest {
   @BeforeEach
   public void beforeEach() throws IOException {
     setupMockRequestMaker();
-    messageDataSource = new GroupMeMessageDataSource(KEY, requestMaker);
+    messageDataSource = new GroupMeMessageDataSource(ApiConstants.URL, KEY, requestMaker);
   }
 
   private void setupMockRequestMaker() throws IOException {
