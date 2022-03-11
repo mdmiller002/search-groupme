@@ -28,41 +28,50 @@ class GroupMeMessageDataSourceTest {
   private static final String GM_API = "https://api.groupme.com/v3/%s?token=" + KEY + "%s";
   private static final String TEST_GROUP = "1";
 
-  private static final String meta = "\"meta\":{\"code\":200}}";
+  private static final String meta = """
+      "meta":{"code":200}}""";
 
   // Groups
   private static final String GROUPS_PG1_URL = String.format(GM_API, "groups", "&omit=memberships&page=1&per_page=100");
   private static final String GROUPS_PG2_URL = String.format(GM_API, "groups", "&omit=memberships&page=2&per_page=100");
-  private static final String GROUP_PG1_RESP = "{\"response\":[{\"id\":\"1\",\"name\":\"Group A\"}," +
-                                               "{\"id\":\"2\",\"name\":\"Group B\"}]," + meta;
-  private static final String GROUP_PG2_RESP = "{\"response\":[]," + meta;
+
+  private static final String GROUP_PG1_RESP = """
+      {"response":[{"id":"1","name":"Group A"},
+      {"id":"2","name":"Group B"}],""" + meta;
+
+  private static final String GROUP_PG2_RESP = """
+      {"response":[],""" + meta;
 
   // Messages
   private static final String MSG_DEFAULT_URL = String.format(GM_API, "groups/" + TEST_GROUP + "/messages", "&limit=100");
-  private static final String MSG_DEFAULT_RESP = "{\"response\":{\"messages\":[" +
-                                             "{\"id\": \"1\", \"group_id\": \"" + TEST_GROUP + "\", \"name\": \"p1\", \"text\": \"msg1\"}," +
-                                             "{\"id\": \"2\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p2\", \"text\": \"msg2\"}," +
-                                             "{\"id\": \"3\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p3\", \"text\": \"msg3\"}," +
-                                             "{\"id\": \"4\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p4\", \"text\": \"msg4\"}," +
-                                             "{\"id\": \"5\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p5\", \"text\": \"msg5\"}]}," + meta;
+  private static final String MSG_DEFAULT_RESP = """
+      {"response":{"messages":[
+      {"id": "1", "group_id": "1", "name": "p1", "text": "msg1"},
+      {"id": "2", "group_id": "1","name": "p2", "text": "msg2"},
+      {"id": "3", "group_id": "1","name": "p3", "text": "msg3"},
+      {"id": "4", "group_id": "1","name": "p4", "text": "msg4"},
+      {"id": "5", "group_id": "1","name": "p5", "text": "msg5"}]},""" + meta;
 
   private static final String MSG_BEFORE_URL = String.format(GM_API, "groups/" + TEST_GROUP + "/messages",
       "&limit=100&before_id=3");
-  private static final String MSG_BEFORE_RESP = "{\"response\":{\"messages\":[" +
-                                            "{\"id\": \"4\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p4\", \"text\": \"msg4\"}," +
-                                            "{\"id\": \"5\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p5\", \"text\": \"msg5\"}]}," + meta;
+  private static final String MSG_BEFORE_RESP = """
+      {"response":{"messages":[
+      {"id": "4", "group_id": "1","name": "p4", "text": "msg4"},
+      {"id": "5", "group_id": "1","name": "p5", "text": "msg5"}]},""" + meta;
 
   private static final String MSG_AFTER_URL = String.format(GM_API, "groups/" + TEST_GROUP + "/messages",
       "&limit=100&after_id=3");
-  private static final String MSG_AFTER_RESP = "{\"response\":{\"messages\":[" +
-      "{\"id\": \"2\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p2\", \"text\": \"msg2\"}," +
-      "{\"id\": \"1\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p1\", \"text\": \"msg1\"}]}," + meta;
+  private static final String MSG_AFTER_RESP = """
+      {"response":{"messages":[
+      {"id": "2", "group_id": "1","name": "p2", "text": "msg2"},
+      {"id": "1", "group_id": "1","name": "p1", "text": "msg1"}]},""" + meta;
 
   private static final String MSG_SINCE_URL = String.format(GM_API, "groups/" + TEST_GROUP + "/messages",
       "&limit=100&since_id=3");
-  private static final String MSG_SINCE_RESP = "{\"response\":{\"messages\":[" +
-      "{\"id\": \"1\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p1\", \"text\": \"msg1\"}," +
-      "{\"id\": \"2\", \"group_id\": \"" + TEST_GROUP + "\",\"name\": \"p2\", \"text\": \"msg2\"}]}," + meta;
+  private static final String MSG_SINCE_RESP = """
+      {"response":{"messages":[
+      {"id": "1", "group_id": "1","name": "p1", "text": "msg1"},
+      {"id": "2", "group_id": "1","name": "p2", "text": "msg2"}]},""" + meta;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
