@@ -24,8 +24,8 @@ import static org.mockito.Mockito.when;
 
 class GroupMeMessageDataSourceTest {
 
-  private static final String KEY = "key";
-  private static final String GM_API = "https://api.groupme.com/v3/%s?token=" + KEY + "%s";
+  private static final String TOKEN = "token";
+  private static final String GM_API = "https://api.groupme.com/v3/%s?token=" + TOKEN + "%s";
   private static final String TEST_GROUP = "1";
 
   private static final String meta = """
@@ -81,7 +81,7 @@ class GroupMeMessageDataSourceTest {
   @BeforeEach
   public void beforeEach() throws IOException {
     setupMockRequestMaker();
-    messageDataSource = new GroupMeMessageDataSource(ApiConstants.URL, KEY, requestMaker);
+    messageDataSource = new GroupMeMessageDataSource(ApiConstants.URL, TOKEN, requestMaker);
   }
 
   private void setupMockRequestMaker() throws IOException {

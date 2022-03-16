@@ -15,7 +15,6 @@ public class GroupResponseWrapper {
 
   private List<Group> response;
 
-
   public List<Group> getResponse() {
     return response;
   }

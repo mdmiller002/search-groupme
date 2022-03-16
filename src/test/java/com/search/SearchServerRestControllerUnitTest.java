@@ -1,7 +1,9 @@
 package com.search;
 
 import com.search.elasticsearch.EsMessageIndex;
+import com.search.groupme.GroupMembershipChecker;
 import com.search.jsonModels.Message;
+import com.search.jsonModels.api.MessageUnauthorizedResponse;
 import com.search.jsonModels.api.MessagesResponse;
 import com.search.jsonModels.api.ServerStatus;
 import com.search.jsonModels.api.UsersResponse;
@@ -35,6 +37,7 @@ public class SearchServerRestControllerUnitTest {
   private static final String USER1 = "user1";
   private static final String TOKEN1 = "token123";
   private static final String GROUP1 = "group1";
+  private static final String UNAUTHORIZED_GROUP = "unauthorized-group";
 
   private static final String USERNAME_KEY = "username";
   private static final String ACCESS_TOKEN_KEY = "accessToken";
@@ -49,9 +52,12 @@ public class SearchServerRestControllerUnitTest {
   @Autowired private UserRepository userRepository;
 
   @MockBean private EsMessageIndex esMessageIndex;
+  @MockBean private GroupMembershipChecker groupMembershipChecker;
 
   @BeforeEach
   public void beforeEach() throws Exception {
+    when(groupMembershipChecker.isUserMemberOfGroup(GROUP1, TOKEN1)).thenReturn(true);
+    when(groupMembershipChecker.isUserMemberOfGroup(UNAUTHORIZED_GROUP, TOKEN1)).thenReturn(false);
     userRepository.deleteAll();
     mvc.perform(post(NEW_USER_API)
             .param(USERNAME_KEY, USER1)
@@ -143,5 +149,18 @@ public class SearchServerRestControllerUnitTest {
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(content().json(toJson(new MessagesResponse(0, Collections.emptyList()))));
+  }
+
+  @Test
+  public void testSearch_notMemberOfGroup() throws Exception {
+    mvc.perform(get(SEARCH_API)
+            .param(USERNAME_KEY, USER1)
+            .param(ACCESS_TOKEN_KEY, TOKEN1)
+            .param(GROUP_ID_KEY, UNAUTHORIZED_GROUP)
+            .param(NAME_KEY, "a")
+            .param(TEXT_KEY, "msg1")
+        .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isUnauthorized())
+        .andExpect(content().json(toJson(new MessageUnauthorizedResponse("User is not a member of this group"))));
   }
 }

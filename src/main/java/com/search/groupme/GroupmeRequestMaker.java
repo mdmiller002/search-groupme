@@ -1,6 +1,9 @@
 package com.search.groupme;
 
 import org.apache.http.entity.ContentType;
+import org.javatuples.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +16,7 @@ import java.net.URL;
  */
 public class GroupmeRequestMaker {
 
+  private static final Logger LOG = LoggerFactory.getLogger(GroupmeRequestMaker.class);
   private static final String CONTENT_TYPE = "Content-Type";
 
   public GroupmeRequestMaker() { }
@@ -22,9 +26,23 @@ public class GroupmeRequestMaker {
   }
 
   public InputStream makeRequest(URL url, ContentType contentType) throws IOException {
-    HttpURLConnection con = (HttpURLConnection) url.openConnection();
-    con.setRequestProperty(CONTENT_TYPE, contentType.getMimeType());
-    return con.getInputStream();
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.setRequestProperty(CONTENT_TYPE, contentType.getMimeType());
+    return connection.getInputStream();
   }
 
+  public Pair<Integer,InputStream> makeRequestWithResponseCode(URL url) throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.setRequestProperty(CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+    connection.connect();
+    int code = connection.getResponseCode();
+    InputStream response;
+    try {
+      response = connection.getInputStream();
+    } catch (Exception e) {
+      LOG.debug("Error getting input stream from connection:", e);
+      response = null;
+    }
+    return new Pair<>(code, response);
+  }
 }
