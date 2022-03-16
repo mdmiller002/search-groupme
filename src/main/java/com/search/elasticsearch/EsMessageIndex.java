@@ -41,7 +41,6 @@ public class EsMessageIndex {
   public EsMessageIndex(EsClientProvider esClientProvider, String index) {
     this.client = esClientProvider.get();
     this.index = index;
-    createIndex();
   }
 
   public String getIndex() {
@@ -57,7 +56,7 @@ public class EsMessageIndex {
     this.refreshPolicy = refreshPolicy;
   }
 
-  private void createIndex() {
+  public void createIndex() {
     try {
       if (!indexExists()) {
         Map<String, Object> mapping = getMapping();
