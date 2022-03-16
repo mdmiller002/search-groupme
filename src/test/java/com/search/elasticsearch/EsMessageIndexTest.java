@@ -44,6 +44,7 @@ class EsMessageIndexTest {
     esMessageIndex = new EsMessageIndex(esClientProvider, index);
     // Force index requests to wait until refresh so all tests are deterministic
     esMessageIndex.setRefreshPolicy(WAIT_UNTIL);
+    esMessageIndex.createIndex();
     bulkMessagePersist = new BulkMessagePersist(index);
   }
 

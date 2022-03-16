@@ -1,5 +1,6 @@
 package com.search.elasticsearch;
 
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.core.MainResponse;
 import org.slf4j.Logger;
@@ -24,7 +25,7 @@ public class EsUtilities {
       LOG.info("Cluster: {}", response.getClusterName());
       LOG.info("Version: {}", response.getVersion().getNumber());
       return true;
-    } catch (IOException e) {
+    } catch (ElasticsearchException | IOException e) {
       LOG.error("Unable to reach Elasticsearch server.", e);
       return false;
     }

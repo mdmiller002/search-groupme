@@ -37,6 +37,7 @@ public class SearchServer {
       LOG.info("Running Search Server service with Spring profiles {}.",
           String.join(",", ctx.getBean(Environment.class).getActiveProfiles()));
       waitForEsToBeReachable();
+      createIndexIfNecessary();
       startMessageIndexingThread();
     };
   }
@@ -47,6 +48,10 @@ public class SearchServer {
       Thread.sleep(2000);
     }
     LOG.info("Elasticsearch is up and reachable.");
+  }
+
+  private void createIndexIfNecessary() {
+    esMessageIndex.createIndex();
   }
 
   private void startMessageIndexingThread() {
