@@ -12,6 +12,7 @@ import com.search.rdbms.hibernate.repositories.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -20,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.search.IntegrationTestConstants.*;
 import static com.search.JsonTestUtils.toJson;
 import static com.search.elasticsearch.TestIndexHelper.deleteDataFromIndex;
 import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.WAIT_UNTIL;
@@ -27,13 +29,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ExtendWith(BasicMockServerTestExtension.class)
 public class SearchServerRestControllerIntegrationTest {
 
-  private static final String USER1 = "user1";
-  private static final String TOKEN1 = "token1";
-  private static final String TOKEN2 = "token2";
-  private static final String GROUP1 = "1";
-  private static final String GROUP2 = "2";
+  private static final String UNAUTHORIZED_MESSAGE = """
+      {"message":"User is not a member of this group"}""";
 
   @Autowired private TestRestTemplate restTemplate;
   @Autowired private UserRepository userRepository;
@@ -72,6 +72,16 @@ public class SearchServerRestControllerIntegrationTest {
     user = userRepository.findById(USER1);
     assertTrue(user.isPresent());
     assertEquals(TOKEN2, user.get().getToken());
+  }
+
+  @Test
+  public void testMessages_unauthorized() {
+    String res = restTemplate.getForObject(getMessagesUrl(UNAUTHORIZED_GROUP, "Matt", "hello"), String.class);
+    assertEquals(UNAUTHORIZED_MESSAGE, res);
+    res = restTemplate.getForObject(getMessagesUrl(GROUP1, "Matt", "hello", UNAUTHORIZED_TOKEN), String.class);
+    assertEquals(UNAUTHORIZED_MESSAGE, res);
+    res = restTemplate.getForObject(getMessagesUrl(INVALID_GROUP, "Matt", "hello"), String.class);
+    assertEquals(UNAUTHORIZED_MESSAGE, res);
   }
 
   @Test
@@ -125,9 +135,13 @@ public class SearchServerRestControllerIntegrationTest {
   }
 
   private String getMessagesUrl(String groupId, String name, String text) {
+    return getMessagesUrl(groupId, name, text, TOKEN1);
+  }
+
+  private String getMessagesUrl(String groupId, String name, String text, String token) {
     StringBuilder builder = new StringBuilder();
     builder.append(getUrl("/messages")).append("?username=").append(USER1).append("&accessToken=")
-        .append(TOKEN1).append("&groupId=").append(groupId);
+        .append(token).append("&groupId=").append(groupId);
     if (name != null) {
       builder.append("&name=").append(name);
     }
