@@ -10,7 +10,7 @@ in the following ways:
 - Offload GroupMe message retrieval to a backend service, so users are not blocked on the frontend during retrieval.
 - Offload message searching to a Search Server on the backend to more efficiently search for messages.
 
-## Features
+## Stack
 
 ### <img src="markdown/images/spring.png" width="20"/> Spring Boot
 
