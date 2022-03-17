@@ -5,7 +5,7 @@ A proof-of-concept backend service for a GroupMe searching application.
 
 -----
 
-A backend service to support a GroupMe searching application. This proof-of-concept serves to improve on the app [Search through GroupMe](https://play.google.com/store/apps/details?id=codswallop.groupmesearch&hl=en_US&gl=US)
+A backend service to support a GroupMe searching application. This proof-of-concept serves to improve on a GroupMe searching app
 in the following ways:
 - Offload GroupMe message retrieval to a backend service, so users are not blocked on the frontend during retrieval.
 - Offload message searching to a Search Server on the backend to more efficiently search for messages.
