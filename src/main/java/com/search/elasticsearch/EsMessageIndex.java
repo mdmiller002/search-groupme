@@ -1,14 +1,18 @@
 package com.search.elasticsearch;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.search.configuration.ElasticsearchConfiguration;
 import com.search.jsonModels.EsMessageDocument;
 import com.search.jsonModels.Message;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.support.WriteRequest;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.client.Request;
 import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
@@ -35,12 +39,18 @@ public class EsMessageIndex {
 
   private final RestHighLevelClient client;
   private final String index;
+  private final long maxIndexSizeInBytes;
+  private final int persistSpaceCheckInterval;
 
-  private WriteRequest.RefreshPolicy refreshPolicy = WriteRequest.RefreshPolicy.NONE;
+  private RefreshPolicy refreshPolicy = RefreshPolicy.NONE;
+  private int numPersistsUntilSizeCheck;
 
-  public EsMessageIndex(EsClientProvider esClientProvider, String index) {
+  public EsMessageIndex(EsClientProvider esClientProvider, String index, ElasticsearchConfiguration configuration) {
     this.client = esClientProvider.get();
     this.index = index;
+    maxIndexSizeInBytes = (long) configuration.getMaxIndexSizeGb() * 1024 * 1024 * 1024;
+    persistSpaceCheckInterval = configuration.getPersistSpaceCheckInterval();
+    numPersistsUntilSizeCheck = persistSpaceCheckInterval;
   }
 
   public String getIndex() {
@@ -52,7 +62,7 @@ public class EsMessageIndex {
    * This can be useful to set custom refresh policies during testing
    * to assert that data was indexed.
    */
-  public void setRefreshPolicy(WriteRequest.RefreshPolicy refreshPolicy) {
+  public void setRefreshPolicy(RefreshPolicy refreshPolicy) {
     this.refreshPolicy = refreshPolicy;
   }
 
@@ -107,6 +117,19 @@ public class EsMessageIndex {
       LOG.warn("Unable to execute null bulk request");
       return;
     }
+    numPersistsUntilSizeCheck--;
+    if (numPersistsUntilSizeCheck <= 0) {
+      numPersistsUntilSizeCheck = persistSpaceCheckInterval;
+      try {
+        if (isIndexOutOfSpace()) {
+          LOG.info("Index {} is out of configured space, not persisting any more data", index);
+          return;
+        }
+      } catch (IOException e) {
+        LOG.error("Error when checking size of index, could not check size so exiting", e);
+        return;
+      }
+    }
     BulkRequest bulkRequest = bulkMessagePersist.getBulkRequest();
     bulkRequest.setRefreshPolicy(refreshPolicy);
     try {
@@ -114,6 +137,29 @@ public class EsMessageIndex {
     } catch (IOException e) {
       LOG.error("Unable to execute bulk request", e);
     }
+  }
+
+  private boolean isIndexOutOfSpace() throws IOException {
+    long actualSize = getSizeOfIndex();
+    if (actualSize > maxIndexSizeInBytes) {
+      LOG.info("Attempting to persist when size of index ({}) is larger than max allowed size ({})",
+          actualSize, maxIndexSizeInBytes);
+      return true;
+    }
+    return false;
+  }
+
+  private long getSizeOfIndex() throws IOException {
+    Response response = client.getLowLevelClient().performRequest(new Request("GET", index + "/_stats"));
+    JsonNode body = new ObjectMapper().readTree(response.getEntity().getContent());
+    LOG.debug("Response from {}/_stats: {}", index, body);
+    return body
+        .get("indices")
+        .get(index)
+        .get("primaries")
+        .get("store")
+        .get("size_in_bytes")
+        .asLong(0);
   }
 
   /**
