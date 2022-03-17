@@ -117,17 +117,19 @@ public class EsMessageIndex {
       LOG.warn("Unable to execute null bulk request");
       return;
     }
-    numPersistsUntilSizeCheck--;
-    if (numPersistsUntilSizeCheck <= 0) {
-      numPersistsUntilSizeCheck = persistSpaceCheckInterval;
-      try {
-        if (isIndexOutOfSpace()) {
-          LOG.info("Index {} is out of configured space, not persisting any more data", index);
+    if (maxIndexSizeInBytes > 0) {
+      numPersistsUntilSizeCheck--;
+      if (numPersistsUntilSizeCheck <= 0) {
+        numPersistsUntilSizeCheck = persistSpaceCheckInterval;
+        try {
+          if (isIndexOutOfSpace()) {
+            LOG.info("Index {} is out of configured space, not persisting any more data", index);
+            return;
+          }
+        } catch (IOException e) {
+          LOG.error("Error when checking size of index, could not check size so exiting", e);
           return;
         }
-      } catch (IOException e) {
-        LOG.error("Error when checking size of index, could not check size so exiting", e);
-        return;
       }
     }
     BulkRequest bulkRequest = bulkMessagePersist.getBulkRequest();
