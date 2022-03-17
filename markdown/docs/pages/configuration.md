@@ -1,7 +1,7 @@
 # Configuration Properties
 
-Custom properties used by the service, which can be set by any of the various
-methods Spring Boot supports setting properties (e.g. `application.properties`).
+Custom properties used by the service, which can be set using any
+Spring-Boot-supported method (e.g. `application.properties`).
 
 ## Elasticsearch Properties
 Controls the service's interaction with Elasticsearch.
