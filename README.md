@@ -1,7 +1,7 @@
 # GroupMe Search Service
 A proof-of-concept backend service for a GroupMe searching application.
 
-***This service is purely a proof-of-concept and is not suitable for any real-world production use.***
+***This service is purely a proof-of-concept and, due to a myriad of security concerns, is not suitable for any real-world production use.***
 
 -----
 
