@@ -1,14 +1,14 @@
 package com.search.configuration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-@Component
-@ConfigurationProperties(ElasticsearchConfiguration.DOMAIN)
+@Configuration
+@ConfigurationProperties(ElasticsearchConfiguration.PREFIX)
 public class ElasticsearchConfiguration {
-  public static final String DOMAIN = "elasticsearch";
+  public static final String PREFIX = "elasticsearch";
 
   private List<String> hosts;
   private int  maxIndexSizeGb = 5;

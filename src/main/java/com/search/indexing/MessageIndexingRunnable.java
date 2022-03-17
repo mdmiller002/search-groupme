@@ -1,32 +1,29 @@
 package com.search.indexing;
 
+import com.search.configuration.IndexingConfiguration;
 import com.search.elasticsearch.EsMessageIndex;
 import com.search.rdbms.hibernate.models.UserEntity;
 import com.search.rdbms.hibernate.repositories.GroupRepository;
 import com.search.rdbms.hibernate.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
-
-import static com.search.configuration.ConfigConstants.GROUP_ME_API_KEY;
-import static com.search.configuration.ConfigConstants.RUN_INDEXING_KEY;
 
 public abstract class MessageIndexingRunnable implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(MessageIndexingRunnable.class);
 
   protected final GroupRepository groupRepository;
   protected final EsMessageIndex esMessageIndex;
-  protected final String groupMeApiEndpoint;
+  protected final IndexingConfiguration indexingConfiguration;
 
-  private final Environment env;
   private final UserRepository userRepository;
 
   private boolean usersExist;
 
-  public MessageIndexingRunnable(Environment env, UserRepository userRepository, GroupRepository groupRepository,
+  public MessageIndexingRunnable(IndexingConfiguration indexingConfiguration,
+                                 UserRepository userRepository,
+                                 GroupRepository groupRepository,
                                  EsMessageIndex esMessageIndex) {
-    this.env = env;
-    this.groupMeApiEndpoint = env.getProperty(GROUP_ME_API_KEY);
+    this.indexingConfiguration = indexingConfiguration;
     this.userRepository = userRepository;
     this.groupRepository = groupRepository;
     this.esMessageIndex = esMessageIndex;
@@ -35,7 +32,7 @@ public abstract class MessageIndexingRunnable implements Runnable {
 
   @Override
   public void run() {
-    LOG.info("Running message indexing thread with GroupMe API host: {}.", groupMeApiEndpoint);
+    LOG.info("Running message indexing thread with GroupMe API host: {}.", indexingConfiguration.getGroupMeApi());
     while (true) {
       runIndexingIteration();
       if (!usersExist) {
@@ -50,8 +47,7 @@ public abstract class MessageIndexingRunnable implements Runnable {
   }
 
   void runIndexingIteration() {
-    String runIndexing = env.getProperty(RUN_INDEXING_KEY);
-    if (indexingTurnedOff(runIndexing)) {
+    if (!indexingConfiguration.runIndexing()) {
       LOG.debug("Message indexing turned off -- skipping iteration.");
       return;
     }
@@ -59,10 +55,6 @@ public abstract class MessageIndexingRunnable implements Runnable {
       usersExist = true;
       updateGroupsForUser(user.getToken());
     }
-  }
-
-  private boolean indexingTurnedOff(String runIndexing) {
-    return runIndexing != null && runIndexing.equals("false");
   }
 
   private void updateGroupsForUser(String accessToken) {
