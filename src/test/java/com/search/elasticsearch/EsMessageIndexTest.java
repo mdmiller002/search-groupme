@@ -1,5 +1,6 @@
 package com.search.elasticsearch;
 
+import com.search.configuration.ElasticsearchConfiguration;
 import com.search.jsonModels.Message;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.indices.GetMappingsRequest;
@@ -41,7 +42,9 @@ class EsMessageIndexTest {
   public void beforeEach() {
     esClientProvider = new TestEsClientProvider();
     deleteIndex(esClientProvider.get(), index);
-    esMessageIndex = new EsMessageIndex(esClientProvider, index);
+    ElasticsearchConfiguration configuration = new ElasticsearchConfiguration();
+    configuration.setPersistSpaceCheckInterval(1);
+    esMessageIndex = new EsMessageIndex(esClientProvider, index, configuration);
     // Force index requests to wait until refresh so all tests are deterministic
     esMessageIndex.setRefreshPolicy(WAIT_UNTIL);
     esMessageIndex.createIndex();

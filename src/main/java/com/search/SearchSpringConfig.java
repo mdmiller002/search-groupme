@@ -39,8 +39,9 @@ public class SearchSpringConfig {
   }
 
   @Bean
-  public EsMessageIndex esMessageIndex(EsClientProvider esClientProvider) {
-    return new EsMessageIndex(esClientProvider, MESSAGE_INDEX);
+  public EsMessageIndex esMessageIndex(EsClientProvider esClientProvider,
+                                       ElasticsearchConfiguration elasticsearchConfiguration) {
+    return new EsMessageIndex(esClientProvider, MESSAGE_INDEX, elasticsearchConfiguration);
   }
 
   @Bean
