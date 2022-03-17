@@ -1,5 +1,6 @@
 package com.search;
 
+import com.search.configuration.IndexingConfiguration;
 import com.search.elasticsearch.EsMessageIndex;
 import com.search.elasticsearch.EsUtilities;
 import com.search.indexing.MessageIndexingRunnable;
@@ -20,7 +21,7 @@ import org.springframework.core.env.Environment;
 public class SearchServer {
 
   @Autowired private EsUtilities esUtilities;
-  @Autowired private Environment environment;
+  @Autowired private IndexingConfiguration indexingConfiguration;
   @Autowired private UserRepository userRepository;
   @Autowired private GroupRepository groupRepository;
   @Autowired private EsMessageIndex esMessageIndex;
@@ -56,7 +57,7 @@ public class SearchServer {
 
   private void startMessageIndexingThread() {
     LOG.info("Starting message indexing thread.");
-    MessageIndexingRunnable messageIndexingRunnable = new MessageIndexingRunnableImpl(environment,
+    MessageIndexingRunnable messageIndexingRunnable = new MessageIndexingRunnableImpl(indexingConfiguration,
         userRepository, groupRepository, esMessageIndex);
     Thread thread = new Thread(messageIndexingRunnable);
     thread.start();

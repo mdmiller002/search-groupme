@@ -1,28 +1,23 @@
 package com.search;
 
 import com.search.configuration.ElasticsearchConfiguration;
+import com.search.configuration.IndexingConfiguration;
 import com.search.elasticsearch.EsClientProvider;
 import com.search.elasticsearch.EsMessageIndex;
 import com.search.elasticsearch.EsUtilities;
 import com.search.elasticsearch.RestEsClientProvider;
 import com.search.groupme.GroupMembershipChecker;
 import org.apache.http.HttpHost;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.search.configuration.ConfigConstants.GROUP_ME_API_KEY;
-
 @Configuration
 public class SearchSpringConfig {
 
   private static final String MESSAGE_INDEX = "messages";
-
-  @Value("${" + GROUP_ME_API_KEY + "}")
-  private String groupMeApiEndpoint;
 
   @Bean
   public EsClientProvider esClientProvider(ElasticsearchConfiguration elasticsearchConfiguration) {
@@ -45,7 +40,7 @@ public class SearchSpringConfig {
   }
 
   @Bean
-  public GroupMembershipChecker groupMembershipChecker() {
-    return new GroupMembershipChecker(groupMeApiEndpoint);
+  public GroupMembershipChecker groupMembershipChecker(IndexingConfiguration indexingConfiguration) {
+    return new GroupMembershipChecker(indexingConfiguration.getGroupMeApi());
   }
 }

@@ -1,39 +1,34 @@
 package com.search.indexing;
 
+import com.search.configuration.IndexingConfiguration;
 import com.search.elasticsearch.EsMessageIndex;
 import com.search.rdbms.hibernate.models.UserEntity;
 import com.search.rdbms.hibernate.repositories.GroupRepository;
 import com.search.rdbms.hibernate.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.env.Environment;
 
 import java.util.Collections;
 import java.util.List;
 
-import static com.search.configuration.ConfigConstants.RUN_INDEXING_KEY;
 import static org.mockito.Mockito.*;
 
 public class MessageIndexingRunnableTest {
 
-  private Environment environment;
+  private IndexingConfiguration indexingConfiguration;
   private UserRepository userRepository;
-  private GroupRepository groupRepository;
-  private EsMessageIndex esMessageIndex;
   private MessageIndexingRunnable thread;
   private MessageIndexer testMessageIndexer;
 
   @BeforeEach
   public void beforeEach() {
-    environment = mock(Environment.class);
+    indexingConfiguration = new IndexingConfiguration();
     userRepository = mock(UserRepository.class);
-    groupRepository = mock(GroupRepository.class);
-    esMessageIndex = mock(EsMessageIndex.class);
-    thread = new TestMessageIndexingRunnableImpl(environment, userRepository,
+    GroupRepository groupRepository = mock(GroupRepository.class);
+    EsMessageIndex esMessageIndex = mock(EsMessageIndex.class);
+    thread = new TestMessageIndexingRunnableImpl(indexingConfiguration, userRepository,
         groupRepository, esMessageIndex);
     testMessageIndexer = thread.getMessageIndexer(null);
-
-    when(environment.getProperty(RUN_INDEXING_KEY)).thenReturn(null);
   }
 
   @Test
@@ -60,7 +55,7 @@ public class MessageIndexingRunnableTest {
   @Test
   public void testRun_ToggledOff() {
     setupMultipleUsers();
-    when(environment.getProperty(RUN_INDEXING_KEY)).thenReturn("false");
+    indexingConfiguration.setRunIndexing(false);
     thread.runIndexingIteration();
     verify(testMessageIndexer, never()).updateGroups();
   }
