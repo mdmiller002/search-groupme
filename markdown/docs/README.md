@@ -1,3 +1,3 @@
-# GroupMe Search Service Technical Documentation
+# Docs
 
 - [Configuration](pages/configuration.md)
